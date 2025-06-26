@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Streamlit
+.streamlit/
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Data files
+*.csv
+*.pickle
+*.pkl
+*.h5
+*.json
+!requirements.json
+
+# Firebase
+firebase-debug.log
+.firebase/
+firebase.json
+.firebaserc
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+*.dockerfile
