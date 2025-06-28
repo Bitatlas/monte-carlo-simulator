@@ -277,7 +277,7 @@ st.markdown("""
 # App title with OptiFolio Simulator branding
 st.markdown('<div style="display: flex; justify-content: space-between; align-items: center;">', unsafe_allow_html=True)
 st.markdown('<div style="font-weight: bold; color: #1E88E5; font-size: 1.2rem;">OptiFolio Simulator</div>', unsafe_allow_html=True)
-st.markdown('<div class="main-header">Multi-Asset Monte Carlo Simulator with Advanced Models</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">📈 Multi-Asset Monte Carlo Simulator with Advanced Models</div>', unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("""
@@ -369,29 +369,55 @@ with st.expander("📚 How to Use & Mathematical Background", expanded=False):
     """)
 
 # Sidebar for inputs
-st.sidebar.header("Simulation Parameters")
+st.sidebar.header("🎯 Simulation Parameters")
 
-# Add a reset button at the top of the sidebar
-if st.sidebar.button("🔄 Reset Cache", help="Clear all cached calculations to get fresh results"):
+# Add a more prominent reset button with custom styling
+st.sidebar.markdown("""
+<style>
+.reset-button {
+    background-color: #FF5252;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s;
+}
+.reset-button:hover {
+    background-color: #FF1744;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transform: translateY(-2px);
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.sidebar.markdown("<hr style='margin: 15px 0; border-color: #ccc;'>", unsafe_allow_html=True)
+if st.sidebar.button("🔄 Reset Cache", help="Clear all cached calculations to get fresh results", use_container_width=True):
     # Clear all st.cache_data
     st.cache_data.clear()
-    st.sidebar.success("Cache cleared! Results will be recalculated.")
+    st.sidebar.success("✅ Cache cleared! Results will be recalculated.")
+st.sidebar.markdown("<hr style='margin: 15px 0; border-color: #ccc;'>", unsafe_allow_html=True)
     
 # Add instructional text under the button
 st.sidebar.caption("Click here every time you run a new simulation")
 
 # Asset selection
-st.sidebar.markdown('<div class="sub-header">Asset Selection</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="sub-header">🔍 Asset Selection</div>', unsafe_allow_html=True)
 
 asset_type = st.sidebar.selectbox(
     "Asset Type",
-    options=["Equity Index", "Individual Stock", "Cryptocurrency", "Bond"],
+    options=["📊 Equity Index", "🏢 Individual Stock", "₿ Cryptocurrency", "🔒 Bond"],
     index=0,
     help="Select the type of asset to simulate. Different asset classes have different historical return patterns, volatility characteristics, and risk profiles."
 )
 
 # Specific asset selection based on type
-if asset_type == "Equity Index":
+if asset_type == "📊 Equity Index" or asset_type == "Equity Index":
     asset = st.sidebar.selectbox(
         "Equity Index",
         options=["SP500", "NASDAQ", "EURO_STOXX50", "STOXX600"],
@@ -404,7 +430,7 @@ if asset_type == "Equity Index":
         }.get(x, x),
         help="Select the equity index to simulate"
     )
-elif asset_type == "Individual Stock":
+elif asset_type == "🏢 Individual Stock" or asset_type == "Individual Stock":
     # Popular stock tickers organized by sector
     popular_stocks = {
         "Technology": ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "INTC", "AMD", "CRM"],
@@ -507,7 +533,7 @@ elif asset_type == "Individual Stock":
             }.get(x, x),
             help="Select a stock ticker symbol"
         )
-elif asset_type == "Cryptocurrency":
+elif asset_type == "₿ Cryptocurrency" or asset_type == "Cryptocurrency":
     asset = st.sidebar.selectbox(
         "Cryptocurrency",
         options=["BTC", "ETH"],
@@ -518,7 +544,7 @@ elif asset_type == "Cryptocurrency":
         }.get(x, x),
         help="Select the cryptocurrency to simulate"
     )
-else:  # Bond
+else:  # Bond (🔒 Bond or Bond)
     asset = st.sidebar.selectbox(
         "Bond Type",
         options=["US10Y", "US30Y", "US3M", "TLT", "IEF", "SHY"],
@@ -571,7 +597,7 @@ else:
 st.sidebar.caption(f"Using data period: {data_period}")
 
 # Investment parameters
-st.sidebar.markdown('<div class="sub-header">Investment Parameters</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="sub-header">💰 Investment Parameters</div>', unsafe_allow_html=True)
 
 investment_amount = st.sidebar.number_input(
     "Initial Investment ($)",
@@ -592,22 +618,22 @@ time_horizon = st.sidebar.slider(
 )
 
 # Simulation parameters
-st.sidebar.markdown('<div class="sub-header">Simulation Parameters</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="sub-header">⚙️ Simulation Parameters</div>', unsafe_allow_html=True)
 
 # Define available models based on installed packages
 available_models = [
-    "Monte Carlo", 
-    "Geometric Brownian Motion"
+    "🎲 Monte Carlo", 
+    "📉 Geometric Brownian Motion"
 ]
 
 if HAS_GARCH:
-    available_models.append("GARCH(1,1)")
+    available_models.append("📊 GARCH(1,1)")
 else:
     st.sidebar.warning("GARCH model is not available. Install the 'arch' package with `pip install arch`.")
 
 available_models.extend([
-    "Markov Chain",
-    "Feynman Path Integral"
+    "⛓️ Markov Chain",
+    "🔄 Feynman Path Integral"
 ])
 
 model_type = st.sidebar.selectbox(
@@ -636,7 +662,7 @@ risk_free_rate = st.sidebar.slider(
 ) / 100  # Convert to decimal
 
 # Leverage parameters
-st.sidebar.markdown('<div class="sub-header">Leverage Parameters</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="sub-header">📊 Leverage Parameters</div>', unsafe_allow_html=True)
 
 leverage_method = st.sidebar.selectbox(
     "Leverage Method",
@@ -665,7 +691,7 @@ elif leverage_method == "Fractional Kelly":
     )
 
 # Additional model-specific parameters
-st.sidebar.markdown('<div class="sub-header">Model-Specific Parameters</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="sub-header">🔧 Model-Specific Parameters</div>', unsafe_allow_html=True)
 
 
 model_params = {}
@@ -715,20 +741,20 @@ elif model_type == "Feynman Path Integral":
     )
 
 # Initialize tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Dashboard", "Simulation Details", "Kelly Analysis", "Use Cases", "About Models", "Kelly Game"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📊 Dashboard", "🔬 Simulation Details", "📈 Kelly Analysis", "🛠️ Use Cases", "ℹ️ About Models", "🎮 Kelly Game"])
 
 # Function to fetch asset data
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def fetch_asset_data(asset_type, asset, period):
     """Fetch historical data for the selected asset."""
     try:
-        if asset_type == "Equity Index":
+        if asset_type == "📊 Equity Index" or asset_type == "Equity Index":
             fetcher = EquityIndexFetcher(index_type=asset, period=period)
-        elif asset_type == "Individual Stock":
+        elif asset_type == "🏢 Individual Stock" or asset_type == "Individual Stock":
             fetcher = StockFetcher(ticker=asset, period=period)
-        elif asset_type == "Cryptocurrency":
+        elif asset_type == "₿ Cryptocurrency" or asset_type == "Cryptocurrency":
             fetcher = CryptoFetcher(crypto_type=asset, period=period)
-        else:  # Bond
+        else:  # Bond (🔒 Bond or Bond)
             fetcher = BondFetcher(bond_type=asset, period=period)
         
         # Fetch data and calculate returns
@@ -762,7 +788,7 @@ def run_simulation(_asset_data, model_type, investment_amount, time_horizon, num
     returns = _asset_data['returns']['daily']
     
     # Create model instance based on selected model type
-    if model_type == "Monte Carlo":
+    if model_type == "🎲 Monte Carlo" or model_type == "Monte Carlo":
         model = MonteCarloModel(
             returns_data=returns,
             investment_amount=investment_amount,
@@ -770,7 +796,7 @@ def run_simulation(_asset_data, model_type, investment_amount, time_horizon, num
             num_simulations=num_simulations,
             trading_days_per_year=252
         )
-    elif model_type == "Geometric Brownian Motion":
+    elif model_type == "📉 Geometric Brownian Motion" or model_type == "Geometric Brownian Motion":
         model = GeometricBrownianMotionModel(
             returns_data=returns,
             investment_amount=investment_amount,
@@ -778,7 +804,7 @@ def run_simulation(_asset_data, model_type, investment_amount, time_horizon, num
             num_simulations=num_simulations,
             trading_days_per_year=252
         )
-    elif model_type == "GARCH(1,1)":
+    elif model_type == "📊 GARCH(1,1)" or model_type == "GARCH(1,1)":
         if not HAS_GARCH:
             st.error("GARCH model is not available. Please install the 'arch' package with `pip install arch`.")
             return None
@@ -799,7 +825,7 @@ def run_simulation(_asset_data, model_type, investment_amount, time_horizon, num
         except ImportError as e:
             st.error(f"Error creating GARCH model: {e}")
             return None
-    elif model_type == "Markov Chain":
+    elif model_type == "⛓️ Markov Chain" or model_type == "Markov Chain":
         num_states = model_params.get('num_states', 5) if model_params else 5
         model = MarkovChainModel(
             returns_data=returns,
@@ -809,7 +835,7 @@ def run_simulation(_asset_data, model_type, investment_amount, time_horizon, num
             trading_days_per_year=252,
             num_states=num_states
         )
-    elif model_type == "Feynman Path Integral":
+    elif model_type == "🔄 Feynman Path Integral" or model_type == "Feynman Path Integral":
         num_paths = model_params.get('num_paths', 1000) if model_params else 1000
         num_time_steps = model_params.get('num_time_steps', 50) if model_params else 50
         model = FeynmanPathIntegralModel(
@@ -1379,13 +1405,13 @@ if st.button("Run Simulation"):
                     st.markdown('<div class="sub-header">Use Cases & Interpretation Guide</div>', unsafe_allow_html=True)
                     
                     # Load and display the use cases markdown file
-                    with open("use_cases.md", "r") as f:
+                    with open("monte_carlo_simulator/use_cases.md", "r", encoding="utf-8") as f:
                         use_cases_content = f.read()
                     st.markdown(use_cases_content)
                     
                     # Load and display the model interpretations markdown file directly
                     st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
-                    with open("model_interpretations.md", "r") as f:
+                    with open("monte_carlo_simulator/model_interpretations.md", "r", encoding="utf-8") as f:
                         model_interpretations_content = f.read()
                     st.markdown(model_interpretations_content)
                 
@@ -1510,13 +1536,13 @@ with tab4:
     st.markdown('<div class="sub-header">Use Cases & Interpretation Guide</div>', unsafe_allow_html=True)
     
     # Load and display the use cases markdown file
-    with open("use_cases.md", "r") as f:
+    with open("monte_carlo_simulator/use_cases.md", "r", encoding="utf-8") as f:
         use_cases_content = f.read()
     st.markdown(use_cases_content)
     
     # Load and display the model interpretations markdown file directly
     st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
-    with open("model_interpretations.md", "r") as f:
+    with open("monte_carlo_simulator/model_interpretations.md", "r", encoding="utf-8") as f:
         model_interpretations_content = f.read()
     st.markdown(model_interpretations_content)
 

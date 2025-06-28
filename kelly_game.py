@@ -366,13 +366,13 @@ def fetch_asset_data(asset_type: str, asset: str, period: str = "10y"):
         Dictionary containing asset data and statistics
     """
     try:
-        if asset_type == "Equity Index":
+        if asset_type == "📊 Equity Index" or asset_type == "Equity Index":
             fetcher = EquityIndexFetcher(index_type=asset, period=period)
-        elif asset_type == "Individual Stock":
+        elif asset_type == "🏢 Individual Stock" or asset_type == "Individual Stock":
             fetcher = StockFetcher(ticker=asset, period=period)
-        elif asset_type == "Cryptocurrency":
+        elif asset_type == "₿ Cryptocurrency" or asset_type == "Cryptocurrency":
             fetcher = CryptoFetcher(crypto_type=asset, period=period)
-        else:  # Bond
+        else:  # Bond (🔒 Bond or Bond)
             fetcher = BondFetcher(bond_type=asset, period=period)
         
         # Fetch data and calculate returns
@@ -547,19 +547,27 @@ def kelly_game_tab():
             )
             st.session_state.kg_kelly_fraction = kelly_fraction
             
-            # Show Kelly ratio
+            # Show Kelly ratio with humorous comments
             kelly_ratio = kelly_fraction / optimal_kelly if optimal_kelly > 0 else float('inf')
             
-            if kelly_ratio < 0.5:
-                st.info(f"Conservative: {kelly_ratio:.2f}x optimal Kelly")
+            if kelly_ratio < 0.25:
+                st.info(f"🐢 You're being too cautious! ({kelly_ratio:.2f}x optimal Kelly) Even my grandma takes more risk than this.")
+            elif kelly_ratio < 0.5:
+                st.info(f"🐌 Playing it safe, huh? ({kelly_ratio:.2f}x optimal Kelly) At least your money's growing... very... slowly...")
+            elif kelly_ratio < 0.75:
+                st.success(f"🦔 Respectable conservatism. ({kelly_ratio:.2f}x optimal Kelly) Smart money territory.")
             elif kelly_ratio < 0.9:
-                st.success(f"Moderate: {kelly_ratio:.2f}x optimal Kelly")
+                st.success(f"🦊 Almost perfect! ({kelly_ratio:.2f}x optimal Kelly) You've got risk management skills.")
             elif kelly_ratio < 1.1:
-                st.success(f"Optimal: {kelly_ratio:.2f}x optimal Kelly")
-            elif kelly_ratio < 2:
-                st.warning(f"Aggressive: {kelly_ratio:.2f}x optimal Kelly")
+                st.success(f"🦁 Perfect balance! ({kelly_ratio:.2f}x optimal Kelly) You're a Kelly Criterion master!")
+            elif kelly_ratio < 1.5:
+                st.warning(f"🦅 Getting aggressive... ({kelly_ratio:.2f}x optimal Kelly) Hope you can handle the volatility!")
+            elif kelly_ratio < 2.0:
+                st.warning(f"🐆 Bold strategy, Cotton! ({kelly_ratio:.2f}x optimal Kelly) Let's see if it pays off.")
+            elif kelly_ratio < 3.0:
+                st.error(f"🦍 Living dangerously! ({kelly_ratio:.2f}x optimal Kelly) Your risk of ruin is climbing fast.")
             else:
-                st.error(f"Very aggressive: {kelly_ratio:.2f}x optimal Kelly")
+                st.error(f"🦖 YOLO mode activated! ({kelly_ratio:.2f}x optimal Kelly) Hope you enjoy rollercoasters and sleepless nights.")
             
             # Reset button
             if st.button("Reset Game", key="kg_reset"):
