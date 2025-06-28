@@ -894,7 +894,7 @@ def calculate_kelly(_returns, risk_free_rate, _asset_name):
         'leverage_curve': (leverage_values, growth_rates, optimal_leverage)
     }
 
-# Add separator and Kelly Game Controls section
+# Add separator and Kelly Game Controls section - avoid using sidebar as context manager for Python 3.13 compatibility
 st.sidebar.markdown('---')
 st.sidebar.markdown('<div class="sub-header">Kelly Game Controls</div>', unsafe_allow_html=True)
 st.sidebar.markdown('*These controls are only for the Kelly Game tab*')
