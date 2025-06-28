@@ -420,8 +420,18 @@ def kelly_game_tab():
     if 'kg_initial_investment' not in st.session_state:
         st.session_state.kg_initial_investment = 10000
     
-    # Create sidebar for controls
-    with st.sidebar:
+    # Determine where to display controls - support both sidebar and column layouts
+    # First check if we're in a column layout (set by app.py)
+    use_column_layout = False
+    if hasattr(st.session_state, 'kg_controls_location') and st.session_state.kg_controls_location == "column":
+        use_column_layout = True
+        controls_container = st
+    else:
+        # Default to sidebar controls for backward compatibility and deployments
+        controls_container = st.sidebar
+    
+    # Create controls container
+    with controls_container:
         st.markdown('<div class="sub-header">Game Controls</div>', unsafe_allow_html=True)
         
         # Asset selection
