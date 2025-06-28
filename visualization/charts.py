@@ -5,6 +5,17 @@ import seaborn as sns
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
+import matplotlib.ticker as mticker
+
+# Custom formatter function to convert numbers to k/M format
+def format_value(x, pos):
+    """Format large numbers as K, M, etc."""
+    if abs(x) >= 1e6:
+        return f"{x*1e-6:.1f}M"
+    elif abs(x) >= 1e3:
+        return f"{x*1e-3:.1f}k"
+    else:
+        return f"{x:.1f}"
 
 class ChartGenerator:
     """
@@ -84,6 +95,9 @@ class ChartGenerator:
             ax.set_title(title)
         else:
             ax.set_title('Monte Carlo Simulation Paths')
+        
+        # Use the custom k/M formatter for y-axis
+        ax.yaxis.set_major_formatter(mticker.FuncFormatter(format_value))
         
         ax.legend()
         plt.tight_layout()
@@ -172,6 +186,10 @@ class ChartGenerator:
         ax.set_title(f"Distribution of Final Portfolio Values (Leverage: {results['leverage']})")
         ax.set_xlabel('Portfolio Value ($)')
         ax.set_ylabel('Frequency')
+        
+        # Use the custom k/M formatter for x-axis
+        ax.xaxis.set_major_formatter(mticker.FuncFormatter(format_value))
+        
         plt.legend()
         
         plt.tight_layout()
