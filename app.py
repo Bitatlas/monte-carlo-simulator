@@ -13,6 +13,7 @@ from data.fetchers import (
     CryptoFetcher, 
     BondFetcher
 )
+from kelly_game import kelly_game_tab
 from models import (
     MonteCarloModel,
     GeometricBrownianMotionModel,
@@ -24,6 +25,25 @@ from models import (
 from optimization import KellyCalculator, LeverageOptimizer
 from visualization import ChartGenerator
 
+# Define helper function for financial jargon tooltips
+def financial_tooltip(term, explanation):
+    """
+    Create a tooltip for financial terms with explanation.
+    
+    Parameters:
+    -----------
+    term : str
+        The financial term to explain
+    explanation : str
+        The explanation of the term
+        
+    Returns:
+    --------
+    str
+        HTML for the tooltip
+    """
+    return f"""<span class="tooltip">{term}<span class="tooltiptext">{explanation}</span></span>"""
+
 # Set page configuration
 st.set_page_config(
     page_title="Multi-Asset Monte Carlo Simulator",
@@ -32,15 +52,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Modern Clean Theme Custom CSS
+# Enhanced Modern Theme Custom CSS with Dark Mode Support
 st.markdown("""
 <style>
-    /* Clean, modern styling */
+    /* Modern sophisticated styling */
     .main-header {
         font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 1.2rem;
         color: #1E88E5;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        letter-spacing: -0.5px;
     }
     
     .sub-header {
@@ -49,11 +71,25 @@ st.markdown("""
         margin-top: 1.8rem;
         margin-bottom: 1rem;
         color: #0277BD;
+        position: relative;
+        padding-bottom: 8px;
+    }
+    
+    .sub-header::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 40px;
+        height: 3px;
+        background-color: #1E88E5;
+        border-radius: 3px;
     }
     
     /* Text styles */
     .info-text {
         font-size: 1.05rem;
+        line-height: 1.6;
     }
     
     .highlight {
@@ -61,47 +97,188 @@ st.markdown("""
         border-left: 3px solid #1E88E5;
         padding: 1rem;
         border-radius: 0.3rem;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
     }
     
-    /* Metrics */
-    .css-1wivap2 {
-        background-color: #ffffff;
-        border-radius: 6px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        transition: transform 0.2s;
-    }
-    
-    .css-1wivap2:hover {
+    .highlight:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
     
-    /* Data frames */
+    /* Metrics with enhanced styling */
+    .css-1wivap2, div[data-testid="stMetric"] {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        padding: 12px !important;
+        border: 1px solid rgba(30, 136, 229, 0.1);
+    }
+    
+    .css-1wivap2:hover, div[data-testid="stMetric"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        border-color: rgba(30, 136, 229, 0.3);
+    }
+    
+    /* Data frames with improved styling */
     .dataframe {
         border: 1px solid #e0e0e0;
-        border-radius: 4px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.05);
     }
     
-    /* Improve button styling */
+    .dataframe th {
+        background-color: #f2f7ff;
+        padding: 12px 15px !important;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    
+    .dataframe td {
+        padding: 10px 15px !important;
+    }
+    
+    /* Enhanced button styling */
     .stButton>button {
         background-color: #1E88E5;
+        background-image: linear-gradient(135deg, #1E88E5, #1976D2);
         color: white;
         border: none;
-        border-radius: 4px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: all 0.2s;
+        border-radius: 6px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+        transition: all 0.3s;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        padding: 0.5rem 1.2rem;
     }
     
     .stButton>button:hover {
-        background-color: #0277BD;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        background-image: linear-gradient(135deg, #1976D2, #0D47A1);
+        box-shadow: 0 5px 12px rgba(0,0,0,0.18);
+        transform: translateY(-2px);
+    }
+    
+    .stButton>button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.2s;
+    }
+    
+    .streamlit-expanderHeader:hover {
+        background-color: #f0f4f8;
+        border-color: #1E88E5;
+    }
+    
+    /* Tooltip styling */
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted #1E88E5;
+        cursor: help;
+        color: #1E88E5;
+        font-weight: 500;
+    }
+    
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 280px;
+        background-color: #323232;
+        color: #fff;
+        text-align: left;
+        border-radius: 6px;
+        padding: 10px 15px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -140px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-weight: normal;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    .tooltip .tooltiptext::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #323232 transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+    
+    /* Card layout styling */
+    .card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border: 1px solid #e6e6e6;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card:hover {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-color: #bbb;
+    }
+    
+    .card-header {
+        font-weight: 600;
+        font-size: 1.25rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.75rem;
+    }
+    
+    /* Animation for page transitions */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .stApp {
+        animation: fadeIn 0.4s ease-out;
+    }
+    
+    /* Hover effects for select boxes */
+    .stSelectbox:hover {
+        border-color: #1E88E5;
+    }
+    
+    /* Gradient accents */
+    .gradient-accent {
+        background: linear-gradient(135deg, #1E88E5, #1976D2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# App title
+# App title with OptiFolio Simulator branding
+st.markdown('<div style="display: flex; justify-content: space-between; align-items: center;">', unsafe_allow_html=True)
+st.markdown('<div style="font-weight: bold; color: #1E88E5; font-size: 1.2rem;">OptiFolio Simulator</div>', unsafe_allow_html=True)
 st.markdown('<div class="main-header">Multi-Asset Monte Carlo Simulator with Advanced Models</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("""
 This application simulates future returns for various assets using multiple mathematical models.
@@ -199,6 +376,9 @@ if st.sidebar.button("🔄 Reset Cache", help="Clear all cached calculations to 
     # Clear all st.cache_data
     st.cache_data.clear()
     st.sidebar.success("Cache cleared! Results will be recalculated.")
+    
+# Add instructional text under the button
+st.sidebar.caption("Click here every time you run a new simulation")
 
 # Asset selection
 st.sidebar.markdown('<div class="sub-header">Asset Selection</div>', unsafe_allow_html=True)
@@ -487,6 +667,7 @@ elif leverage_method == "Fractional Kelly":
 # Additional model-specific parameters
 st.sidebar.markdown('<div class="sub-header">Model-Specific Parameters</div>', unsafe_allow_html=True)
 
+
 model_params = {}
 
 if model_type == "GARCH(1,1)" and HAS_GARCH:
@@ -534,7 +715,7 @@ elif model_type == "Feynman Path Integral":
     )
 
 # Initialize tabs
-tab1, tab2, tab3, tab4 = st.tabs(["Dashboard", "Simulation Details", "Kelly Analysis", "About Models"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Dashboard", "Simulation Details", "Kelly Analysis", "Use Cases", "About Models", "Kelly Game"])
 
 # Function to fetch asset data
 @st.cache_data(ttl=3600)  # Cache for 1 hour
@@ -687,7 +868,15 @@ def calculate_kelly(_returns, risk_free_rate, _asset_name):
         'leverage_curve': (leverage_values, growth_rates, optimal_leverage)
     }
 
+# Add separator and Kelly Game Controls section
+st.sidebar.markdown('---')
+st.sidebar.markdown('<div class="sub-header">Kelly Game Controls</div>', unsafe_allow_html=True)
+st.sidebar.markdown('*These controls are only for the Kelly Game tab*')
+
 # Run simulation when user clicks the button
+current_tab_index = st.query_params.get("tab", ["0"])[0]
+is_kelly_game_tab = (current_tab_index == "5")  # Kelly Game is the 6th tab (index 5)
+
 if st.button("Run Simulation"):
     # Show progress spinner
     with st.spinner("Fetching asset data and running simulation..."):
@@ -695,8 +884,9 @@ if st.button("Run Simulation"):
         asset_data = fetch_asset_data(asset_type, asset, data_period)
         
         if asset_data:
-            # Display asset information
-            st.markdown(f"<div class='sub-header'>Analysis for: {asset_data['name']}</div>", unsafe_allow_html=True)
+            # Display asset information with years of data
+            data_years = asset_data['stats'].get('data_period_years', historical_years)
+            st.markdown(f"<div class='sub-header'>Analysis for: {asset_data['name']} ({data_years} years of data)</div>", unsafe_allow_html=True)
             
             # Calculate Kelly criterion if needed
             if leverage_method in ["Kelly Criterion", "Fractional Kelly", "Numerical Optimization"]:
@@ -1141,33 +1331,66 @@ if st.button("Run Simulation"):
                     )
                     st.pyplot(kelly_fig)
                     
-                    # Explanation of Kelly Criterion
+                    # Explanation of Kelly Criterion with tooltips
                     st.markdown('<div class="sub-header">Understanding the Kelly Criterion</div>', unsafe_allow_html=True)
                     
-                    st.markdown("""
-                    The Kelly Criterion is a formula for determining the optimal size of a series of bets or investments
+                    kelly_tooltip = financial_tooltip("Kelly Criterion", 
+                        "A mathematical formula that helps investors determine the optimal size of investments to maximize long-term growth. It balances risk and reward by calculating how much to invest based on the probability of success and the risk/reward ratio.")
+                    
+                    leverage_tooltip = financial_tooltip("leverage", 
+                        "Using borrowed capital to increase potential returns. For example, 2x leverage means you're controlling $20,000 worth of assets with just $10,000 of your own capital.")
+                    
+                    log_utility_tooltip = financial_tooltip("logarithmic utility", 
+                        "A way of measuring the satisfaction or value an investor gets from wealth. It increases with wealth but at a decreasing rate, which means gaining $1,000 means more to someone with $10,000 than to someone with $100,000.")
+                    
+                    geometric_growth_tooltip = financial_tooltip("geometric growth rate", 
+                        "The compound growth rate that accounts for compounding effects over time. Unlike arithmetic averages, it properly represents the growth of investments over multiple periods.")
+                    
+                    probability_ruin_tooltip = financial_tooltip("probability of ruin", 
+                        "The likelihood that an investor will lose all or nearly all of their capital, making recovery impossible.")
+                    
+                    fractional_kelly_tooltip = financial_tooltip("Fractional Kelly", 
+                        "Using a fraction (e.g., 50%) of the Kelly-suggested allocation to reduce risk. This approach sacrifices some expected return to gain significant reduction in volatility.")
+                    
+                    st.markdown(f"""
+                    The {kelly_tooltip} is a formula for determining the optimal size of a series of bets or investments
                     to maximize the logarithm of wealth over the long run. For continuous returns, the formula is:
                     
                     **f* = (μ - r) / σ²**
                     
                     Where:
-                    - **f*** is the optimal leverage
+                    - **f*** is the optimal {leverage_tooltip}
                     - **μ** is the expected return
                     - **r** is the risk-free rate
                     - **σ²** is the variance of returns
                     
                     The Kelly criterion has several key properties:
                     
-                    1. **Maximizes logarithmic utility**: It provides the highest expected geometric growth rate
-                    2. **No probability of ruin**: When strictly followed, it ensures you never lose everything
+                    1. **Maximizes {log_utility_tooltip}**: It provides the highest expected {geometric_growth_tooltip}
+                    2. **No {probability_ruin_tooltip}**: When strictly followed, it ensures you never lose everything
                     3. **Long-term optimality**: Any strategy using more or less than Kelly will underperform in the long run
                     
-                    However, many investors use a **Fractional Kelly** approach (e.g., Half Kelly) to reduce risk,
+                    However, many investors use a **{fractional_kelly_tooltip}** approach (e.g., Half Kelly) to reduce risk,
                     acknowledging that we don't know the true parameters of the return distribution.
-                    """)
+                    """, unsafe_allow_html=True)
+                
+                # Use Cases tab content
+                with tab4:
+                    st.markdown('<div class="sub-header">Use Cases & Interpretation Guide</div>', unsafe_allow_html=True)
+                    
+                    # Load and display the use cases markdown file
+                    with open("use_cases.md", "r") as f:
+                        use_cases_content = f.read()
+                    st.markdown(use_cases_content)
+                    
+                    # Load and display the model interpretations markdown file directly
+                    st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
+                    with open("model_interpretations.md", "r") as f:
+                        model_interpretations_content = f.read()
+                    st.markdown(model_interpretations_content)
                 
                 # About Models tab content
-                with tab4:
+                with tab5:
                     st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
                     
                     # Create expanders for each model
@@ -1282,12 +1505,27 @@ if st.button("Run Simulation"):
         else:
             st.error("Failed to fetch asset data. Please check the asset selection and try again.")
 
+# Display Use Cases tab content (always visible regardless of simulation)
+with tab4:
+    st.markdown('<div class="sub-header">Use Cases & Interpretation Guide</div>', unsafe_allow_html=True)
+    
+    # Load and display the use cases markdown file
+    with open("use_cases.md", "r") as f:
+        use_cases_content = f.read()
+    st.markdown(use_cases_content)
+    
+    # Load and display the model interpretations markdown file directly
+    st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
+    with open("model_interpretations.md", "r") as f:
+        model_interpretations_content = f.read()
+    st.markdown(model_interpretations_content)
+
 # Initial message if simulation hasn't been run
-else:
+if "result" not in locals():
     st.info("Adjust the parameters in the sidebar and click 'Run Simulation' to start.")
     
     # Show explanation in the About Models tab
-    with tab4:
+    with tab5:
         st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
         
         st.markdown("""
@@ -1302,6 +1540,55 @@ else:
         Each model has different assumptions and is suitable for different market conditions.
         Select a model from the sidebar and click "Run Simulation" to see detailed explanations.
         """)
+
+# Kelly Game tab content
+with tab6:
+    # Create two columns for better organization: game controls on left, game display on right
+    game_col1, game_col2 = st.columns([1, 3])
+    
+    with game_col1:
+        st.markdown('<div class="sub-header">Kelly Game Controls</div>', unsafe_allow_html=True)
+        
+        # Add explanation
+        st.markdown("""
+        This interactive game demonstrates the Kelly criterion in action. 
+        
+        Select an asset and configure your game parameters, then click "Initialize Game" to start.
+        """)
+        
+        # Add controls in the left column (these will be passed to the kelly_game_tab function)
+        st.session_state.kg_controls_location = "column"
+    
+    with game_col2:
+        # Game display area
+        st.markdown('<div class="main-header">Kelly Betting Game</div>', unsafe_allow_html=True)
+        
+        # Help text about separation
+        st.info("Game controls are in the left column ←")
+        
+        # Main game display
+        kelly_game_tab()
+
+# About the Author Section
+st.markdown("---")
+with st.expander("About the Author", expanded=False):
+    st.markdown("""
+    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+        <div style="flex: 1;">
+            <h3>Henrique Centieiro</h3>
+            <p class="info-text">
+                Henrique Centieiro is a financial engineer and quantitative analyst specializing in investment optimization 
+                and risk management. With expertise in Monte Carlo simulations and portfolio theory, he developed OptiFolio 
+                Simulator to help investors understand complex investment concepts through interactive visualization and analysis.
+            </p>
+            <p class="info-text">
+                His work combines mathematical rigor with practical financial applications, making sophisticated investment 
+                strategies accessible to both individual and institutional investors. Henrique is passionate about financial 
+                education and empowering investors through data-driven decision making.
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Footer
 st.markdown("---")
