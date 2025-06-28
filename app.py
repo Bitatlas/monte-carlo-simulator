@@ -1404,16 +1404,42 @@ if st.button("Run Simulation"):
                 with tab4:
                     st.markdown('<div class="sub-header">Use Cases & Interpretation Guide</div>', unsafe_allow_html=True)
                     
-                    # Load and display the use cases markdown file
-                    with open("monte_carlo_simulator/use_cases.md", "r", encoding="utf-8") as f:
+                # Load and display the use cases markdown file with path handling for different environments
+                try:
+                    # Try direct path first (for deployed environments)
+                    with open("use_cases.md", "r", encoding="utf-8") as f:
                         use_cases_content = f.read()
-                    st.markdown(use_cases_content)
-                    
-                    # Load and display the model interpretations markdown file directly
-                    st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
-                    with open("monte_carlo_simulator/model_interpretations.md", "r", encoding="utf-8") as f:
+                except FileNotFoundError:
+                    try:
+                        # Try relative path from current directory
+                        import os
+                        current_dir = os.path.dirname(os.path.abspath(__file__))
+                        with open(os.path.join(current_dir, "use_cases.md"), "r", encoding="utf-8") as f:
+                            use_cases_content = f.read()
+                    except FileNotFoundError:
+                        # Fallback to hardcoded path
+                        with open("monte_carlo_simulator/use_cases.md", "r", encoding="utf-8") as f:
+                            use_cases_content = f.read()
+                st.markdown(use_cases_content)
+                
+                # Load and display the model interpretations markdown file directly
+                st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
+                try:
+                    # Try direct path first (for deployed environments)
+                    with open("model_interpretations.md", "r", encoding="utf-8") as f:
                         model_interpretations_content = f.read()
-                    st.markdown(model_interpretations_content)
+                except FileNotFoundError:
+                    try:
+                        # Try relative path from current directory
+                        import os
+                        current_dir = os.path.dirname(os.path.abspath(__file__))
+                        with open(os.path.join(current_dir, "model_interpretations.md"), "r", encoding="utf-8") as f:
+                            model_interpretations_content = f.read()
+                    except FileNotFoundError:
+                        # Fallback to hardcoded path
+                        with open("monte_carlo_simulator/model_interpretations.md", "r", encoding="utf-8") as f:
+                            model_interpretations_content = f.read()
+                st.markdown(model_interpretations_content)
                 
                 # About Models tab content
                 with tab5:
@@ -1535,15 +1561,41 @@ if st.button("Run Simulation"):
 with tab4:
     st.markdown('<div class="sub-header">Use Cases & Interpretation Guide</div>', unsafe_allow_html=True)
     
-    # Load and display the use cases markdown file
-    with open("monte_carlo_simulator/use_cases.md", "r", encoding="utf-8") as f:
-        use_cases_content = f.read()
+    # Load and display the use cases markdown file with path handling
+    try:
+        # Try direct path first (for deployed environments)
+        with open("use_cases.md", "r", encoding="utf-8") as f:
+            use_cases_content = f.read()
+    except FileNotFoundError:
+        try:
+            # Try relative path from current directory
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            with open(os.path.join(current_dir, "use_cases.md"), "r", encoding="utf-8") as f:
+                use_cases_content = f.read()
+        except FileNotFoundError:
+            # Fallback to hardcoded path
+            with open("monte_carlo_simulator/use_cases.md", "r", encoding="utf-8") as f:
+                use_cases_content = f.read()
     st.markdown(use_cases_content)
     
-    # Load and display the model interpretations markdown file directly
+    # Load and display the model interpretations markdown file with path handling
     st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
-    with open("monte_carlo_simulator/model_interpretations.md", "r", encoding="utf-8") as f:
-        model_interpretations_content = f.read()
+    try:
+        # Try direct path first (for deployed environments)
+        with open("model_interpretations.md", "r", encoding="utf-8") as f:
+            model_interpretations_content = f.read()
+    except FileNotFoundError:
+        try:
+            # Try relative path from current directory
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            with open(os.path.join(current_dir, "model_interpretations.md"), "r", encoding="utf-8") as f:
+                model_interpretations_content = f.read()
+        except FileNotFoundError:
+            # Fallback to hardcoded path
+            with open("monte_carlo_simulator/model_interpretations.md", "r", encoding="utf-8") as f:
+                model_interpretations_content = f.read()
     st.markdown(model_interpretations_content)
 
 # Initial message if simulation hasn't been run
