@@ -425,20 +425,13 @@ def kelly_game_tab():
     use_column_layout = False
     if hasattr(st.session_state, 'kg_controls_location') and st.session_state.kg_controls_location == "column":
         use_column_layout = True
-        controls_container = st
+        # Don't use controls_container at all for Python 3.13 compatibility
+        # Just use direct st calls for column layout
+        st.markdown('<div class="sub-header">Game Controls</div>', unsafe_allow_html=True)
     else:
         # Default to sidebar controls for backward compatibility and deployments
-        controls_container = st.sidebar
-    
-    # Create controls container - handle sidebar differently for Python 3.13 compatibility
-    # Don't use 'with' statement for sidebar as it doesn't support context manager protocol in Python 3.13
-    if controls_container == st.sidebar:
-        # Direct access for sidebar
-        controls_container.markdown('<div class="sub-header">Game Controls</div>', unsafe_allow_html=True)
-    else:
-        # Use context manager for normal streamlit or columns
-        with controls_container:
-            st.markdown('<div class="sub-header">Game Controls</div>', unsafe_allow_html=True)
+        # Direct access for sidebar (don't use context manager in Python 3.13)
+        st.sidebar.markdown('<div class="sub-header">Game Controls</div>', unsafe_allow_html=True)
         
         # Asset selection
         asset_type = st.selectbox(
