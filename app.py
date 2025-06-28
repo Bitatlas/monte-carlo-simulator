@@ -1641,9 +1641,6 @@ with tab6:
         # Game display area
         st.markdown('<div class="main-header">Kelly Betting Game</div>', unsafe_allow_html=True)
         
-        # Help text about separation
-        st.info("Game controls are in the left column ←")
-        
         # Main game display
         kelly_game_tab()
 
