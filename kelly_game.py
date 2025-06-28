@@ -425,163 +425,171 @@ def kelly_game_tab():
     use_column_layout = False
     if hasattr(st.session_state, 'kg_controls_location') and st.session_state.kg_controls_location == "column":
         use_column_layout = True
-        # Don't use controls_container at all for Python 3.13 compatibility
-        # Just use direct st calls for column layout
+    
+    # Python 3.13 compatibility: Don't use context managers with st or st.sidebar
+    # Instead use direct method calls on the appropriate object
+    
+    # Display controls header (in sidebar or column)
+    if use_column_layout:
         st.markdown('<div class="sub-header">Game Controls</div>', unsafe_allow_html=True)
     else:
-        # Default to sidebar controls for backward compatibility and deployments
-        # Direct access for sidebar (don't use context manager in Python 3.13)
         st.sidebar.markdown('<div class="sub-header">Game Controls</div>', unsafe_allow_html=True)
-        
-        # Asset selection
-        asset_type = st.selectbox(
-            "Asset Type",
-            options=["Equity Index", "Individual Stock", "Cryptocurrency", "Bond"],
-            key="kg_asset_type",
-            help="Select the type of asset to simulate"
-        )
-        
-        # Specific asset selection based on type
-        if asset_type == "Equity Index":
-            asset = st.selectbox(
-                "Equity Index",
-                options=["SP500", "NASDAQ"],
-                index=0,
-                format_func=lambda x: {"SP500": "S&P 500", "NASDAQ": "Nasdaq 100"}.get(x, x),
-                key="kg_asset",
-                help="Select the equity index to simulate"
-            )
-        elif asset_type == "Individual Stock":
-            asset = st.selectbox(
-                "Stock Ticker",
-                options=["AAPL", "PLTR", "BRK.A"],
-                index=0,
-                format_func=lambda x: {
-                    "AAPL": "Apple (AAPL)",
-                    "PLTR": "Palantir (PLTR)",
-                    "BRK.A": "Berkshire Hathaway (BRK.A)"
-                }.get(x, x),
-                key="kg_stock",
-                help="Select the stock to simulate"
-            )
-        elif asset_type == "Cryptocurrency":
-            asset = st.selectbox(
-                "Cryptocurrency",
-                options=["BTC", "ETH"],
-                index=0,
-                format_func=lambda x: {"BTC": "Bitcoin (BTC)", "ETH": "Ethereum (ETH)"}.get(x, x),
-                key="kg_crypto",
-                help="Select the cryptocurrency to simulate"
-            )
-        else:  # Bond
-            asset = st.selectbox(
-                "Bond",
-                options=["TLT", "IEF"],
-                index=0,
-                format_func=lambda x: {
-                    "TLT": "iShares 20+ Year Treasury Bond ETF (TLT)",
-                    "IEF": "iShares 7-10 Year Treasury Bond ETF (IEF)"
-                }.get(x, x),
-                key="kg_bond",
-                help="Select the bond to simulate"
-            )
-        
-        # Simulation method
-        simulator_type = st.radio(
-            "Simulation Method",
-            options=["Bootstrap", "Markov Chain"],
+    
+    # Choose the appropriate object for all control elements based on layout
+    if use_column_layout:
+        control_obj = st
+    else:
+        control_obj = st.sidebar
+    
+    # Asset selection
+    asset_type = control_obj.selectbox(
+        "Asset Type",
+        options=["Equity Index", "Individual Stock", "Cryptocurrency", "Bond"],
+        key="kg_asset_type",
+        help="Select the type of asset to simulate"
+    )
+    
+    # Specific asset selection based on type
+    if asset_type == "Equity Index":
+        asset = control_obj.selectbox(
+            "Equity Index",
+            options=["SP500", "NASDAQ"],
             index=0,
-            key="kg_simulator_type",
-            help="Choose the simulation method"
+            format_func=lambda x: {"SP500": "S&P 500", "NASDAQ": "Nasdaq 100"}.get(x, x),
+            key="kg_asset",
+            help="Select the equity index to simulate"
+        )
+    elif asset_type == "Individual Stock":
+        asset = control_obj.selectbox(
+            "Stock Ticker",
+            options=["AAPL", "PLTR", "BRK.A"],
+            index=0,
+            format_func=lambda x: {
+                "AAPL": "Apple (AAPL)",
+                "PLTR": "Palantir (PLTR)",
+                "BRK.A": "Berkshire Hathaway (BRK.A)"
+            }.get(x, x),
+            key="kg_stock",
+            help="Select the stock to simulate"
+        )
+    elif asset_type == "Cryptocurrency":
+        asset = control_obj.selectbox(
+            "Cryptocurrency",
+            options=["BTC", "ETH"],
+            index=0,
+            format_func=lambda x: {"BTC": "Bitcoin (BTC)", "ETH": "Ethereum (ETH)"}.get(x, x),
+            key="kg_crypto",
+            help="Select the cryptocurrency to simulate"
+        )
+    else:  # Bond
+        asset = control_obj.selectbox(
+            "Bond",
+            options=["TLT", "IEF"],
+            index=0,
+            format_func=lambda x: {
+                "TLT": "iShares 20+ Year Treasury Bond ETF (TLT)",
+                "IEF": "iShares 7-10 Year Treasury Bond ETF (IEF)"
+            }.get(x, x),
+            key="kg_bond",
+            help="Select the bond to simulate"
+        )
+    
+    # Simulation method
+    simulator_type = control_obj.radio(
+        "Simulation Method",
+        options=["Bootstrap", "Markov Chain"],
+        index=0,
+        key="kg_simulator_type",
+        help="Choose the simulation method"
+    )
+    
+    # Initialize button
+    if control_obj.button("Initialize Game", key="kg_initialize"):
+        with st.spinner("Fetching asset data..."):
+            # Fetch asset data
+            asset_data = fetch_asset_data(asset_type, asset, period="10y")
+            
+            if asset_data:
+                st.session_state.kg_asset_data = asset_data
+                
+                # Create simulator
+                if simulator_type == "Bootstrap":
+                    st.session_state.kg_simulator = BootstrapSimulator(
+                        returns_data=asset_data['returns']['daily'],
+                        asset_name=asset_data['name'],
+                        initial_investment=st.session_state.kg_initial_investment
+                    )
+                else:  # Markov Chain
+                    st.session_state.kg_simulator = MarkovChainSimulator(
+                        returns_data=asset_data['returns']['daily'],
+                        asset_name=asset_data['name'],
+                        initial_investment=st.session_state.kg_initial_investment,
+                        num_states=5
+                    )
+                
+                control_obj.success(f"Game initialized for {asset_data['name']}!")
+            else:
+                control_obj.error("Failed to fetch asset data. Please try again.")
+    
+    # Game parameters (only show when game is initialized)
+    if st.session_state.kg_simulator:
+        control_obj.markdown('<div class="sub-header">Game Parameters</div>', unsafe_allow_html=True)
+        
+        # Initial investment
+        initial_investment = control_obj.number_input(
+            "Initial Investment ($)",
+            min_value=1000,
+            max_value=1000000,
+            value=st.session_state.kg_initial_investment,
+            step=1000,
+            key="kg_initial_investment_input",
+            help="Your initial investment amount"
         )
         
-        # Initialize button
-        if st.button("Initialize Game", key="kg_initialize"):
-            with st.spinner("Fetching asset data..."):
-                # Fetch asset data
-                asset_data = fetch_asset_data(asset_type, asset, period="10y")
-                
-                if asset_data:
-                    st.session_state.kg_asset_data = asset_data
-                    
-                    # Create simulator
-                    if simulator_type == "Bootstrap":
-                        st.session_state.kg_simulator = BootstrapSimulator(
-                            returns_data=asset_data['returns']['daily'],
-                            asset_name=asset_data['name'],
-                            initial_investment=st.session_state.kg_initial_investment
-                        )
-                    else:  # Markov Chain
-                        st.session_state.kg_simulator = MarkovChainSimulator(
-                            returns_data=asset_data['returns']['daily'],
-                            asset_name=asset_data['name'],
-                            initial_investment=st.session_state.kg_initial_investment,
-                            num_states=5
-                        )
-                    
-                    st.success(f"Game initialized for {asset_data['name']}!")
-                else:
-                    st.error("Failed to fetch asset data. Please try again.")
+        # Update initial investment if changed
+        if initial_investment != st.session_state.kg_initial_investment:
+            st.session_state.kg_initial_investment = initial_investment
+            st.session_state.kg_simulator.reset(initial_investment=initial_investment)
         
-        # Game parameters (only show when game is initialized)
-        if st.session_state.kg_simulator:
-            st.markdown('<div class="sub-header">Game Parameters</div>', unsafe_allow_html=True)
-            
-            # Initial investment
-            initial_investment = st.number_input(
-                "Initial Investment ($)",
-                min_value=1000,
-                max_value=1000000,
-                value=st.session_state.kg_initial_investment,
-                step=1000,
-                key="kg_initial_investment_input",
-                help="Your initial investment amount"
-            )
-            
-            # Update initial investment if changed
-            if initial_investment != st.session_state.kg_initial_investment:
-                st.session_state.kg_initial_investment = initial_investment
-                st.session_state.kg_simulator.reset(initial_investment=initial_investment)
-            
-            # Leverage slider (renamed from Kelly Fraction)
-            optimal_kelly = st.session_state.kg_simulator.optimal_kelly
-            kelly_fraction = st.slider(
-                "Leverage",
-                min_value=0.0,
-                max_value=5.0,
-                value=st.session_state.kg_kelly_fraction,
-                step=0.1,
-                key="kg_kelly_fraction_slider",
-                help="Amount of leverage to apply (Kelly fraction)"
-            )
-            st.session_state.kg_kelly_fraction = kelly_fraction
-            
-            # Show Kelly ratio with humorous comments
-            kelly_ratio = kelly_fraction / optimal_kelly if optimal_kelly > 0 else float('inf')
-            
-            if kelly_ratio < 0.25:
-                st.info(f"🐢 You're being too cautious! ({kelly_ratio:.2f}x optimal Kelly) Even my grandma takes more risk than this.")
-            elif kelly_ratio < 0.5:
-                st.info(f"🐌 Playing it safe, huh? ({kelly_ratio:.2f}x optimal Kelly) At least your money's growing... very... slowly...")
-            elif kelly_ratio < 0.75:
-                st.success(f"🦔 Respectable conservatism. ({kelly_ratio:.2f}x optimal Kelly) Smart money territory.")
-            elif kelly_ratio < 0.9:
-                st.success(f"🦊 Almost perfect! ({kelly_ratio:.2f}x optimal Kelly) You've got risk management skills.")
-            elif kelly_ratio < 1.1:
-                st.success(f"🦁 Perfect balance! ({kelly_ratio:.2f}x optimal Kelly) You're a Kelly Criterion master!")
-            elif kelly_ratio < 1.5:
-                st.warning(f"🦅 Getting aggressive... ({kelly_ratio:.2f}x optimal Kelly) Hope you can handle the volatility!")
-            elif kelly_ratio < 2.0:
-                st.warning(f"🐆 Bold strategy, Cotton! ({kelly_ratio:.2f}x optimal Kelly) Let's see if it pays off.")
-            elif kelly_ratio < 3.0:
-                st.error(f"🦍 Living dangerously! ({kelly_ratio:.2f}x optimal Kelly) Your risk of ruin is climbing fast.")
-            else:
-                st.error(f"🦖 YOLO mode activated! ({kelly_ratio:.2f}x optimal Kelly) Hope you enjoy rollercoasters and sleepless nights.")
-            
-            # Reset button
-            if st.button("Reset Game", key="kg_reset"):
-                st.session_state.kg_simulator.reset()
-                st.success("Game reset!")
+        # Leverage slider (renamed from Kelly Fraction)
+        optimal_kelly = st.session_state.kg_simulator.optimal_kelly
+        kelly_fraction = control_obj.slider(
+            "Leverage",
+            min_value=0.0,
+            max_value=5.0,
+            value=st.session_state.kg_kelly_fraction,
+            step=0.1,
+            key="kg_kelly_fraction_slider",
+            help="Amount of leverage to apply (Kelly fraction)"
+        )
+        st.session_state.kg_kelly_fraction = kelly_fraction
+        
+        # Show Kelly ratio with humorous comments
+        kelly_ratio = kelly_fraction / optimal_kelly if optimal_kelly > 0 else float('inf')
+        
+        if kelly_ratio < 0.25:
+            control_obj.info(f"🐢 You're being too cautious! ({kelly_ratio:.2f}x optimal Kelly) Even my grandma takes more risk than this.")
+        elif kelly_ratio < 0.5:
+            control_obj.info(f"🐌 Playing it safe, huh? ({kelly_ratio:.2f}x optimal Kelly) At least your money's growing... very... slowly...")
+        elif kelly_ratio < 0.75:
+            control_obj.success(f"🦔 Respectable conservatism. ({kelly_ratio:.2f}x optimal Kelly) Smart money territory.")
+        elif kelly_ratio < 0.9:
+            control_obj.success(f"🦊 Almost perfect! ({kelly_ratio:.2f}x optimal Kelly) You've got risk management skills.")
+        elif kelly_ratio < 1.1:
+            control_obj.success(f"🦁 Perfect balance! ({kelly_ratio:.2f}x optimal Kelly) You're a Kelly Criterion master!")
+        elif kelly_ratio < 1.5:
+            control_obj.warning(f"🦅 Getting aggressive... ({kelly_ratio:.2f}x optimal Kelly) Hope you can handle the volatility!")
+        elif kelly_ratio < 2.0:
+            control_obj.warning(f"🐆 Bold strategy, Cotton! ({kelly_ratio:.2f}x optimal Kelly) Let's see if it pays off.")
+        elif kelly_ratio < 3.0:
+            control_obj.error(f"🦍 Living dangerously! ({kelly_ratio:.2f}x optimal Kelly) Your risk of ruin is climbing fast.")
+        else:
+            control_obj.error(f"🦖 YOLO mode activated! ({kelly_ratio:.2f}x optimal Kelly) Hope you enjoy rollercoasters and sleepless nights.")
+        
+        # Reset button
+        if control_obj.button("Reset Game", key="kg_reset"):
+            st.session_state.kg_simulator.reset()
+            control_obj.success("Game reset!")
     
     # Main content area
     if st.session_state.kg_simulator:
@@ -748,14 +756,7 @@ def kelly_game_tab():
             3. **Set your leverage** using the slider (0 = no leverage, 1 = full Kelly, etc.)
             4. **Click 'Advance Week'** to simulate one week of market movement
             5. **Watch your portfolio** grow or shrink based on the market and your leverage
-            6. **Adjust your leverage** as needed based on performance
+            6. **Adjust your strategy** as needed to maximize returns while managing risk
             
-            The game continues until you lose 99% of your initial investment or choose to reset.
-            
-            ### Simulation Methods
-            
-            - **Bootstrap:** Randomly samples from actual historical returns
-            - **Markov Chain:** Uses a state-based model that captures market regimes
-            
-            Try both methods to see how they affect your optimal betting strategy!
+            Remember that the Kelly Criterion suggests the optimal fraction of your capital to risk!
             """)
