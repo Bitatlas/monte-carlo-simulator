@@ -1652,14 +1652,16 @@ with st.expander("About the Author", expanded=False):
         <div style="flex: 1;">
             <h3>Henrique Centieiro</h3>
             <p class="info-text">
-                Henrique Centieiro is a financial engineer and quantitative analyst specializing in investment optimization 
-                and risk management. With expertise in Monte Carlo simulations and portfolio theory, he developed OptiFolio 
-                Simulator to help investors understand complex investment concepts through interactive visualization and analysis.
+                Henrique Centieiro is a financial engineer, quantitative analyst, Research Lead at peaq network, Venture Partner at Harbour Industrial Capital and former Senior Research Manager at HashKey Capital, a venture capital firm focused on blockchain investments. With expertise spanning Monte Carlo simulations, portfolio theory, and blockchain technology, he has been working in the tech industry since 2004 and currently serves as a lecturer at the University of Hong Kong business school.
             </p>
             <p class="info-text">
-                His work combines mathematical rigor with practical financial applications, making sophisticated investment 
-                strategies accessible to both individual and institutional investors. Henrique is passionate about financial 
-                education and empowering investors through data-driven decision making.
+                As the developer of OptiFolio Simulator, Henrique combines mathematical rigor with practical financial applications, making sophisticated investment strategies accessible to both individual and institutional investors. He is renowned for his pioneering work on leveraged ETFs, having developed the "Optimal Leverage Indicator" to help investors determine appropriate leverage levels based on asset volatility and returns. His extensive research on leveraged investing strategies has been published in multiple articles on Limitless Investor and is taught through his "Leveraged ETFs Masterclass" course.
+            </p>
+            <p class="info-text">
+                Beyond his financial research, Henrique is an 8X Medium Top Writer who shares insights on AI, cryptocurrency, investing, and financial mindsets. He is also the Founder of the "Be Limitless" community, dedicated to financial education and empowering investors through data-driven decision making.
+            </p>
+            <p class="info-text">
+                <i>For more alpha, follow <a href="https://linktr.ee/cryptohenri" target="_blank">https://linktr.ee/cryptohenri</a></i>
             </p>
         </div>
     </div>
