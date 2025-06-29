@@ -1,136 +1,93 @@
 # Practical Interpretation of Model Results
 
-This guide explains how to practically interpret the results from each simulation model and the key differences between them.
+Each simulation model has different assumptions and characteristics. Here's how to interpret the results from each model:
 
-## Standard Monte Carlo Model
+## 📊 Standard Monte Carlo
 
-### Interpretation of Results
-- **Median Final Value**: The middle outcome - a typical result you might expect
-- **Mean Final Value**: Usually higher than the median due to the unlimited upside but limited downside
-- **Confidence Intervals**: The range where most outcomes fall - wider intervals indicate more uncertainty
-- **Maximum Drawdown**: The worst peak-to-trough decline you should be prepared to withstand
+**Key Characteristics:**
+- Assumes normal distribution of returns
+- Independence between time periods
+- Constant volatility
 
-### Practical Applications
-- Use this model for quick estimates and first-pass analysis
-- Best for stable market conditions without regime changes
-- Suitable for shorter time horizons (1-5 years) where volatility is relatively constant
+**When Interpreting Results:**
+- Good for baseline projections
+- Less accurate for highly volatile assets
+- May underestimate tail risks (extreme events)
+- Works best for longer time horizons where central limit theorem applies
 
-### Limitations
-- Underestimates tail risks (extreme events)
-- Doesn't capture volatility clustering or market regimes
-- Assumes returns are independent day-to-day (no momentum or mean reversion)
+**Confidence Level Guidance:**
+- Use wider confidence intervals (e.g., 90% instead of 68%)
+- Pay attention to worst-case scenarios in addition to median outcomes
+- Consider supplementing with other models for volatile assets
 
-## Geometric Brownian Motion (GBM) Model
+## 📈 Geometric Brownian Motion (GBM)
 
-### Interpretation of Results
-- **Final Distribution**: More realistic as asset paths can't go below zero
-- **Volatility Impact**: Higher volatility has a stronger drag effect than in standard Monte Carlo
-- **Path Dependence**: The exact sequence of returns matters more than in standard Monte Carlo
+**Key Characteristics:**
+- Models continuous-time price movements
+- Log-returns follow normal distribution
+- More mathematically sound than standard Monte Carlo
 
-### Practical Applications
-- More theoretically sound for stock price modeling
-- Better for options pricing and derivative analysis
-- Good for modeling leveraged instruments where the path matters
+**When Interpreting Results:**
+- More appropriate for modeling equity prices
+- Captures the multiplicative nature of returns
+- Still underestimates extreme events
+- Better suited for pricing derivatives
 
-### Limitations
-- Still assumes constant volatility
-- Doesn't capture fat tails or black swan events well
-- Assumes continuous price changes (no gaps or jumps)
+**Confidence Level Guidance:**
+- GBM provides more realistic path trajectories
+- Time-consistent simulations (scaling properties)
+- Still subject to limitations of normal distribution assumptions
 
-## GARCH(1,1) Model
+## 📉 GARCH(1,1)
 
-### Interpretation of Results
-- **Fatter Tails**: Expect more extreme outcomes in both directions
-- **Volatility Clustering**: Periods of high volatility followed by more high volatility
-- **Higher Drawdowns**: Generally shows larger potential drawdowns than simpler models
+**Key Characteristics:**
+- Models volatility clustering
+- Captures time-varying volatility
+- Better represents market turbulence periods
 
-### Practical Applications
-- Best during and after market turbulence
-- Use for stress testing portfolios
-- Excellent for risk management and calculating more realistic Value-at-Risk
+**When Interpreting Results:**
+- Higher probability of extreme events than normal models
+- More realistic in periods of market stress
+- Better captures volatility persistence
+- May show "fat tails" in the distribution
 
-### Limitations
-- More complex to understand and explain
-- Requires more historical data for parameter estimation
-- Can sometimes overestimate volatility persistence
+**Confidence Level Guidance:**
+- Pay special attention to drawdown metrics
+- More realistic risk assessment in turbulent markets
+- Better at representing periods of high volatility
 
-## Markov Chain Model
+## ⛓️ Markov Chain
 
-### Interpretation of Results
-- **Regime-Based**: Results show transitions between different market states
-- **State Persistence**: Captures tendency of markets to stay in bull or bear modes
-- **Non-Normal Distribution**: Often shows more realistic multi-modal return distributions
+**Key Characteristics:**
+- Captures regime-switching behavior
+- Represents discrete market states
+- Models persistence of bull/bear markets
 
-### Practical Applications
-- Ideal for cyclical markets or assets
-- Good for modeling assets that switch between growth and value regimes
-- Useful for long-term strategic asset allocation
+**When Interpreting Results:**
+- Look for multi-modal distributions
+- Better captures "fat tails" than normal models
+- Shows potential for extended bull or bear runs
+- Results highly dependent on number of states chosen
 
-### Limitations
-- Discrete states are a simplification of continuous reality
-- Number of states chosen affects results significantly
-- Transition probabilities may not be stable over time
+**Confidence Level Guidance:**
+- Examine the state transition matrix
+- Consider how long the model predicts staying in each regime
+- Useful for identifying potential regime shifts
 
-## Feynman Path Integral Model
+## 🔄 Feynman Path Integral
 
-### Interpretation of Results
-- **Complex Dynamics**: Captures intricate market behaviors beyond simple models
-- **Tail Risk**: Better representation of extreme but rare events
-- **Path Exploration**: Considers many possible future paths, including unlikely ones
+**Key Characteristics:**
+- Quantum-inspired approach
+- Models complex path dependencies
+- Better representation of rare events
 
-### Practical Applications
-- Advanced risk analysis for sophisticated investors
-- Modeling complex derivatives and structured products
-- Research into market anomalies and inefficiencies
+**When Interpreting Results:**
+- Captures complex market dynamics
+- More sophisticated modeling of unusual market conditions
+- May show paths not represented in other models
+- Computational intensity can vary results
 
-### Limitations
-- Most complex model to understand and interpret
-- Computationally intensive
-- May find patterns in noise if overfit
-
-## Key Differences Between Models
-
-### Standard Monte Carlo vs. GBM
-- GBM ensures prices remain positive (more realistic)
-- GBM accounts for compounding effects better
-- Standard Monte Carlo is simpler and more intuitive
-
-### GBM vs. GARCH
-- GARCH captures time-varying volatility; GBM assumes constant volatility
-- GARCH typically shows higher tail risks
-- GBM is more widely used in financial theory and practice
-
-### GARCH vs. Markov Chain
-- GARCH models volatility changes continuously; Markov Chain uses discrete states
-- Markov Chain can capture structural shifts better
-- GARCH is more focused on volatility; Markov Chain on overall regimes
-
-### Markov Chain vs. Path Integral
-- Path Integral is more mathematically sophisticated
-- Markov Chain is more interpretable
-- Path Integral can capture more complex dynamics
-
-## Which Model to Use When
-
-### During Stable Markets
-- Standard Monte Carlo or GBM are sufficient
-- Focus on the median outcomes and narrow confidence intervals
-
-### During Volatile Periods
-- GARCH provides more realistic volatility estimates
-- Pay attention to the wider confidence intervals and higher drawdowns
-
-### For Long-Term Planning
-- Markov Chain captures regime shifts that matter over decades
-- Consider all scenarios, especially the lower percentiles for safety
-
-### For Risk Management
-- Use multiple models and compare their tail risk estimates
-- GARCH and Path Integral typically provide more conservative risk estimates
-
-### For Leveraged Investments
-- Always use GARCH or Markov Chain to better capture downside risks
-- Pay special attention to maximum drawdown statistics
-- Consider using half the suggested Kelly leverage
-
-By understanding these different models and their practical interpretations, you can make more informed investment decisions based on the simulation results.
+**Confidence Level Guidance:**
+- Most appropriate for research purposes
+- Consider as complementary to traditional models
+- Useful for stress-testing and exploring extreme scenarios
