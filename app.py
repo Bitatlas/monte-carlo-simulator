@@ -106,14 +106,28 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
     
-    /* Metrics with enhanced styling */
+    /* Metrics with enhanced styling - Fixed for dark mode */
     .css-1wivap2, div[data-testid="stMetric"] {
-        background-color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: inherit !important;
         border-radius: 8px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
         padding: 12px !important;
         border: 1px solid rgba(30, 136, 229, 0.1);
+    }
+    
+    /* Fix for metric values in dark mode */
+    div[data-testid="stMetric"] > div {
+        color: inherit !important;
+    }
+    
+    div[data-testid="stMetric"] > div > div {
+        color: inherit !important;
+    }
+    
+    div[data-testid="stMetric"] label {
+        color: inherit !important;
     }
     
     .css-1wivap2:hover, div[data-testid="stMetric"]:hover {
@@ -271,19 +285,159 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
+    
+    /* Enhanced tab visibility */
+    button[data-baseweb="tab"] {
+        font-weight: 800 !important; /* Increased font weight for bolder text */
+        padding: 10px 20px !important;
+        margin: 0 3px !important;
+        border-radius: 5px 5px 0 0 !important;
+        transition: all 0.2s ease !important;
+        font-size: 1.05rem !important;
+        border: 1px solid #e0e0e0 !important;
+        border-bottom: none !important;
+    }
+    
+    /* Make tab text and icons stand out more */
+    button[data-baseweb="tab"] span {
+        font-weight: 800 !important;
+    }
+    
+    button[data-baseweb="tab"]:hover {
+        background-color: rgba(30, 136, 229, 0.15) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1) !important;
+    }
+    
+    button[data-baseweb="tab"][aria-selected="true"] {
+        background-color: rgba(30, 136, 229, 0.2) !important;
+        border-bottom: 4px solid #1E88E5 !important;
+        box-shadow: 0 -3px 7px rgba(0,0,0,0.12) !important;
+    }
+    
+    div[data-testid="stVerticalBlock"] div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
+        border: 1px solid #e0e0e0 !important;
+    }
+    
+    /* Adjusted top padding */
+    .main .block-container {
+        padding-top: 2rem !important;
+    }
+    
+    /* Aggressively reduced sidebar spacing */
+    .stSelectbox, .stSlider, section[data-testid="stSidebar"] .stNumberInput {
+        margin-bottom: 0.2rem !important;
+        padding-bottom: 0 !important;
+    }
+    
+    section[data-testid="stSidebar"] .block-container {
+        padding-top: 0.5rem !important;
+    }
+    
+    section[data-testid="stSidebar"] hr {
+        margin: 0.4rem 0 !important;
+    }
+    
+    /* Reduce spacing between sidebar elements */
+    section[data-testid="stSidebar"] .element-container {
+        margin-bottom: 0.1rem !important;
+        padding-bottom: 0 !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Compress sidebar labels */
+    section[data-testid="stSidebar"] label {
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+        line-height: 1.2 !important;
+    }
+    
+    /* Logo styling */
+    .app-logo {
+        width: 150px;
+        height: auto;
+        margin-bottom: 10px;
+    }
+    
+    /* Bold sidebar instruction */
+    .reset-instruction {
+        font-weight: bold;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    
+    /* Fix the Kelly Game layout specifically */
+    
+    /* 1. Make the horizontal layout more compact - reduce gap between columns */
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="stHorizontalBlock"] {
+        gap: 0 !important;
+        column-gap: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* 2. Remove left padding from content column to move text closer to controls */
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:nth-child(2) {
+        padding-left: 0 !important;
+        margin-left: -70px !important; /* Even larger negative margin to pull content much closer to left panel */
+    }
+    
+    /* 3. Compact the left panel's internal elements - controls */
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child > div {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* 4. Reduce space between each control in the left panel */
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child .stSelectbox {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child .stRadio {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child .element-container {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    /* 5. Target selection boxes and radio labels specifically to reduce their padding */
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child label {
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+        font-size: 0.9em !important;
+    }
+    
+    /* 6. Target the control inputs themselves */
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child select,
+    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child input {
+        margin-top: 0 !important;
+        margin-bottom: 2px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# App title with OptiFolio Simulator branding
-st.markdown('<div style="display: flex; justify-content: space-between; align-items: center;">', unsafe_allow_html=True)
-st.markdown('<div style="font-weight: bold; color: #1E88E5; font-size: 1.2rem;">OptiFolio Simulator</div>', unsafe_allow_html=True)
-st.markdown('<div class="main-header">📈 Multi-Asset Monte Carlo Simulator with Advanced Models</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+# Base64 encoded logo image - simplified version
+logo_base64 = ""
 
-st.markdown("""
-This application simulates future returns for various assets using multiple mathematical models.
-It also calculates the optimal leverage based on the Kelly Criterion to maximize long-term growth.
-""")
+# Create app header with improved title and branding
+st.markdown('<div class="main-header">OptiFolio Simulator</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-size: 1.2rem; margin-bottom: 1rem;">📈 Multi-Asset Monte Carlo Simulator with Advanced Models</div>', unsafe_allow_html=True)
 
 with st.expander("📚 How to Use & Mathematical Background", expanded=False):
     st.markdown("""
@@ -396,15 +550,14 @@ st.sidebar.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.markdown("<hr style='margin: 15px 0; border-color: #ccc;'>", unsafe_allow_html=True)
 if st.sidebar.button("🔄 Reset Cache", help="Clear all cached calculations to get fresh results", use_container_width=True):
     # Clear all st.cache_data
     st.cache_data.clear()
     st.sidebar.success("✅ Cache cleared! Results will be recalculated.")
+
+# Add instructional text under the button with bold formatting
+st.sidebar.markdown("<p style='font-weight: bold; margin-top: 0; font-size: 0.85em;'>Click here every time you run a new simulation</p>", unsafe_allow_html=True)
 st.sidebar.markdown("<hr style='margin: 15px 0; border-color: #ccc;'>", unsafe_allow_html=True)
-    
-# Add instructional text under the button
-st.sidebar.caption("Click here every time you run a new simulation")
 
 # Asset selection
 st.sidebar.markdown('<div class="sub-header">🔍 Asset Selection</div>', unsafe_allow_html=True)
@@ -691,9 +844,6 @@ elif leverage_method == "Fractional Kelly":
     )
 
 # Additional model-specific parameters
-st.sidebar.markdown('<div class="sub-header">🔧 Model-Specific Parameters</div>', unsafe_allow_html=True)
-
-
 model_params = {}
 
 if model_type == "GARCH(1,1)" and HAS_GARCH:
@@ -740,8 +890,35 @@ elif model_type == "Feynman Path Integral":
         help="Number of time steps for discretization"
     )
 
-# Initialize tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📊 Dashboard", "🔬 Simulation Details", "📈 Kelly Analysis", "🛠️ Use Cases", "ℹ️ About Models", "🎮 Kelly Game"])
+# Initialize tabs (using CSS to make them bold rather than HTML tags)
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "📊 Dashboard", 
+    "🔬 Simulation Details", 
+    "📈 Kelly Analysis", 
+    "🛠️ Use Cases", 
+    "ℹ️ About Models", 
+    "🎮 Kelly Game"
+])
+
+# Add even stronger CSS to make tab text bold
+st.markdown("""
+<style>
+/* Ensure tab text is extra bold */
+button[data-baseweb="tab"] p {
+    font-weight: 900 !important;
+    font-size: 1.1rem !important;
+}
+button[data-baseweb="tab"] {
+    font-weight: 900 !important;
+    font-size: 1.1rem !important;
+}
+/* Make emojis stand out */
+button[data-baseweb="tab"] span {
+    font-weight: 900 !important;
+    font-size: 1.1rem !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Function to fetch asset data
 @st.cache_data(ttl=3600)  # Cache for 1 hour
@@ -894,10 +1071,8 @@ def calculate_kelly(_returns, risk_free_rate, _asset_name):
         'leverage_curve': (leverage_values, growth_rates, optimal_leverage)
     }
 
-# Add separator and Kelly Game Controls section - avoid using sidebar as context manager for Python 3.13 compatibility
+# Add separator to end of sidebar
 st.sidebar.markdown('---')
-st.sidebar.markdown('<div class="sub-header">Kelly Game Controls</div>', unsafe_allow_html=True)
-st.sidebar.markdown('*These controls are only for the Kelly Game tab*')
 
 # Run simulation when user clicks the button
 current_tab_index = st.query_params.get("tab", ["0"])[0]
@@ -1400,168 +1575,9 @@ if st.button("Run Simulation"):
                     acknowledging that we don't know the true parameters of the return distribution.
                     """, unsafe_allow_html=True)
                 
-                # Use Cases tab content
-                with tab4:
-                    st.markdown('<div class="sub-header">Use Cases & Interpretation Guide</div>', unsafe_allow_html=True)
-                    
-                # Load and display the use cases markdown file with path handling for different environments
-                try:
-                    # Try direct path first (for deployed environments)
-                    with open("use_cases.md", "r", encoding="utf-8") as f:
-                        use_cases_content = f.read()
-                except FileNotFoundError:
-                    try:
-                        # Try relative path from current directory
-                        import os
-                        current_dir = os.path.dirname(os.path.abspath(__file__))
-                        with open(os.path.join(current_dir, "use_cases.md"), "r", encoding="utf-8") as f:
-                            use_cases_content = f.read()
-                    except FileNotFoundError:
-                        # Fallback to hardcoded path
-                        with open("monte_carlo_simulator/use_cases.md", "r", encoding="utf-8") as f:
-                            use_cases_content = f.read()
-                st.markdown(use_cases_content)
-                
-                # Load and display the model interpretations markdown file directly
-                st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
-                try:
-                    # Try direct path first (for deployed environments)
-                    with open("model_interpretations.md", "r", encoding="utf-8") as f:
-                        model_interpretations_content = f.read()
-                except FileNotFoundError:
-                    try:
-                        # Try relative path from current directory
-                        import os
-                        current_dir = os.path.dirname(os.path.abspath(__file__))
-                        with open(os.path.join(current_dir, "model_interpretations.md"), "r", encoding="utf-8") as f:
-                            model_interpretations_content = f.read()
-                    except FileNotFoundError:
-                        # Fallback to hardcoded path
-                        with open("monte_carlo_simulator/model_interpretations.md", "r", encoding="utf-8") as f:
-                            model_interpretations_content = f.read()
-                st.markdown(model_interpretations_content)
-                
-                # About Models tab content
-                with tab5:
-                    st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
-                    
-                    # Create expanders for each model
-                    with st.expander("Standard Monte Carlo"):
-                        st.markdown("""
-                        **Standard Monte Carlo** simulates returns by randomly sampling from a normal distribution,
-                        using the historical mean and standard deviation of returns. This is the simplest model but assumes
-                        that returns are independent and identically distributed (i.i.d.) and follow a normal distribution.
-                        
-                        **Key Assumptions:**
-                        - Returns follow a normal distribution
-                        - Returns are independent from day to day
-                        - Parameters (mean, volatility) remain constant
-                        
-                        **When to Use:**
-                        - For simple, quick simulations
-                        - When you believe markets are relatively efficient
-                        - For educational purposes and basic planning
-                        """)
-                    
-                    with st.expander("Geometric Brownian Motion (GBM)"):
-                        st.markdown("""
-                        **Geometric Brownian Motion** is a continuous-time stochastic process where the logarithm of the
-                        asset price follows a Brownian motion with drift. This is the model underlying the Black-Scholes
-                        options pricing formula.
-                        
-                        The GBM model is described by the stochastic differential equation:
-                        
-                        dS = μS dt + σS dW
-                        
-                        Where:
-                        - S is the asset price
-                        - μ is the drift (expected return)
-                        - σ is the volatility
-                        - dW is a Wiener process (Brownian motion)
-                        
-                        **Key Assumptions:**
-                        - Returns are log-normally distributed
-                        - Volatility is constant
-                        - No autocorrelation in returns
-                        
-                        **When to Use:**
-                        - For modeling most financial assets
-                        - When you want a more theoretically sound model than simple Monte Carlo
-                        - For options pricing and risk management
-                        """)
-                    
-                    with st.expander("GARCH(1,1)"):
-                        st.markdown("""
-                        **GARCH (Generalized Autoregressive Conditional Heteroskedasticity)** models capture the fact that
-                        volatility in financial markets tends to cluster (periods of high volatility tend to persist).
-                        GARCH(1,1) is the simplest form, where current volatility depends on the previous period's
-                        volatility and squared return.
-                        
-                        The GARCH(1,1) model is defined as:
-                        
-                        σ²ₜ = ω + α·r²ₜ₋₁ + β·σ²ₜ₋₁
-                        
-                        Where:
-                        - σ²ₜ is the variance at time t
-                        - r²ₜ₋₁ is the squared return in the previous period
-                        - ω, α, β are parameters estimated from historical data
-                        
-                        **Key Advantages:**
-                        - Captures volatility clustering
-                        - More realistic risk estimates during turbulent markets
-                        - Better suited for measuring tail risks
-                        
-                        **When to Use:**
-                        - During periods of changing volatility
-                        - For risk management in complex markets
-                        - When you need more accurate Value-at-Risk (VaR) estimates
-                        """)
-                    
-                    with st.expander("Markov Chain"):
-                        st.markdown("""
-                        **Markov Chain** models discretize returns into a finite number of states and use transition
-                        probabilities between these states to generate future return sequences. This approach can capture
-                        regime-switching behavior in markets.
-                        
-                        **Key Features:**
-                        - Captures different market regimes (bull, bear, sideways)
-                        - Models state persistence (tendency to stay in the same state)
-                        - Can represent non-normal return distributions
-                        
-                        **When to Use:**
-                        - When markets show distinct regimes
-                        - For modeling assets with cyclical behavior
-                        - When simple normal distribution assumptions are inadequate
-                        """)
-                    
-                    with st.expander("Feynman Path Integral"):
-                        st.markdown("""
-                        **Feynman Path Integral** approaches, borrowed from quantum mechanics, treat asset price evolution
-                        as a sum over all possible paths, weighted by an "action" function. This allows for more complex
-                        dynamics and rare events.
-                        
-                        **Key Features:**
-                        - Can model complex, non-Gaussian dynamics
-                        - Better representation of extreme market events
-                        - Accounts for path-dependency in price evolution
-                        
-                        **When to Use:**
-                        - For sophisticated risk analysis
-                        - When concerned about tail risks and black swan events
-                        - For research into complex market dynamics
-                        
-                        This is an advanced, experimental approach to financial modeling inspired by quantum physics.
-                        """)
-            else:
-                st.error("Failed to run simulation. Please check the parameters and try again.")
-        else:
-            st.error("Failed to fetch asset data. Please check the asset selection and try again.")
-
-# Display Use Cases tab content (always visible regardless of simulation)
+# Use Cases tab content
 with tab4:
-    st.markdown('<div class="sub-header">Use Cases & Interpretation Guide</div>', unsafe_allow_html=True)
-    
-    # Load and display the use cases markdown file with path handling
+    # Load and display the use cases markdown file with path handling for different environments
     try:
         # Try direct path first (for deployed environments)
         with open("use_cases.md", "r", encoding="utf-8") as f:
@@ -1578,25 +1594,124 @@ with tab4:
             with open("monte_carlo_simulator/use_cases.md", "r", encoding="utf-8") as f:
                 use_cases_content = f.read()
     st.markdown(use_cases_content)
+
+# About Models tab content
+with tab5:
+    st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
     
-    # Load and display the model interpretations markdown file with path handling
-    st.markdown('<div class="sub-header">Practical Interpretation of Results by Model Type</div>', unsafe_allow_html=True)
-    try:
-        # Try direct path first (for deployed environments)
-        with open("model_interpretations.md", "r", encoding="utf-8") as f:
-            model_interpretations_content = f.read()
-    except FileNotFoundError:
-        try:
-            # Try relative path from current directory
-            import os
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            with open(os.path.join(current_dir, "model_interpretations.md"), "r", encoding="utf-8") as f:
-                model_interpretations_content = f.read()
-        except FileNotFoundError:
-            # Fallback to hardcoded path
-            with open("monte_carlo_simulator/model_interpretations.md", "r", encoding="utf-8") as f:
-                model_interpretations_content = f.read()
-    st.markdown(model_interpretations_content)
+    # Create expanders for each model
+    with st.expander("Standard Monte Carlo"):
+        st.markdown("""
+        **Standard Monte Carlo** simulates returns by randomly sampling from a normal distribution,
+        using the historical mean and standard deviation of returns. This is the simplest model but assumes
+        that returns are independent and identically distributed (i.i.d.) and follow a normal distribution.
+        
+        **Key Assumptions:**
+        - Returns follow a normal distribution
+        - Returns are independent from day to day
+        - Parameters (mean, volatility) remain constant
+        
+        **When to Use:**
+        - For simple, quick simulations
+        - When you believe markets are relatively efficient
+        - For educational purposes and basic planning
+        """)
+    
+    with st.expander("Geometric Brownian Motion (GBM)"):
+        st.markdown("""
+        **Geometric Brownian Motion** is a continuous-time stochastic process where the logarithm of the
+        asset price follows a Brownian motion with drift. This is the model underlying the Black-Scholes
+        options pricing formula.
+        
+        The GBM model is described by the stochastic differential equation:
+        
+        dS = μS dt + σS dW
+        
+        Where:
+        - S is the asset price
+        - μ is the drift (expected return)
+        - σ is the volatility
+        - dW is a Wiener process (Brownian motion)
+        
+        **Key Assumptions:**
+        - Returns are log-normally distributed
+        - Volatility is constant
+        - No autocorrelation in returns
+        
+        **When to Use:**
+        - For modeling most financial assets
+        - When you want a more theoretically sound model than simple Monte Carlo
+        - For options pricing and risk management
+        """)
+    
+    with st.expander("GARCH(1,1)"):
+        st.markdown("""
+        **GARCH (Generalized Autoregressive Conditional Heteroskedasticity)** models capture the fact that
+        volatility in financial markets tends to cluster (periods of high volatility tend to persist).
+        GARCH(1,1) is the simplest form, where current volatility depends on the previous period's
+        volatility and squared return.
+        
+        The GARCH(1,1) model is defined as:
+        
+        σ²ₜ = ω + α·r²ₜ₋₁ + β·σ²ₜ₋₁
+        
+        Where:
+        - σ²ₜ is the variance at time t
+        - r²ₜ₋₁ is the squared return in the previous period
+        - ω, α, β are parameters estimated from historical data
+        
+        **Key Advantages:**
+        - Captures volatility clustering
+        - More realistic risk estimates during turbulent markets
+        - Better suited for measuring tail risks
+        
+        **When to Use:**
+        - During periods of changing volatility
+        - For risk management in complex markets
+        - When you need more accurate Value-at-Risk (VaR) estimates
+        """)
+    
+    with st.expander("Markov Chain"):
+        st.markdown("""
+        **Markov Chain** models discretize returns into a finite number of states and use transition
+        probabilities between these states to generate future return sequences. This approach can capture
+        regime-switching behavior in markets.
+        
+        **Key Features:**
+        - Captures different market regimes (bull, bear, sideways)
+        - Models state persistence (tendency to stay in the same state)
+        - Can represent non-normal return distributions
+        
+        **When to Use:**
+        - When markets show distinct regimes
+        - For modeling assets with cyclical behavior
+        - When simple normal distribution assumptions are inadequate
+        """)
+    
+    with st.expander("Feynman Path Integral"):
+        st.markdown("""
+        **Feynman Path Integral** approaches, borrowed from quantum mechanics, treat asset price evolution
+        as a sum over all possible paths, weighted by an "action" function. This allows for more complex
+        dynamics and rare events.
+        
+        **Key Features:**
+        - Can model complex, non-Gaussian dynamics
+        - Better representation of extreme market events
+        - Accounts for path-dependency in price evolution
+        
+        **When to Use:**
+        - For sophisticated risk analysis
+        - When concerned about tail risks and black swan events
+        - For research into complex market dynamics
+        
+        This is an advanced, experimental approach to financial modeling inspired by quantum physics.
+        """)
+
+# Only show error messages if Run Simulation was clicked
+if "result" not in locals() and "run_button_clicked" in locals() and run_button_clicked:
+    st.error("Failed to run simulation. Please check the parameters and try again.")
+
+# This section has been removed to eliminate redundancy
 
 # Initial message if simulation hasn't been run
 if "result" not in locals():
@@ -1625,22 +1740,10 @@ with tab6:
     game_col1, game_col2 = st.columns([1, 3])
     
     with game_col1:
-        st.markdown('<div class="sub-header">Kelly Game Controls</div>', unsafe_allow_html=True)
-        
-        # Add explanation
-        st.markdown("""
-        This interactive game demonstrates the Kelly criterion in action. 
-        
-        Select an asset and configure your game parameters, then click "Initialize Game" to start.
-        """)
-        
         # Add controls in the left column (these will be passed to the kelly_game_tab function)
         st.session_state.kg_controls_location = "column"
     
     with game_col2:
-        # Game display area
-        st.markdown('<div class="main-header">Kelly Betting Game</div>', unsafe_allow_html=True)
-        
         # Main game display
         kelly_game_tab()
 
