@@ -359,25 +359,38 @@ class ChartGenerator:
             optimal_leverage = 1.0
             max_growth = 0.0
         
-        # Mark the optimal leverage point - with smaller font
-        ax.plot([optimal_leverage], [max_growth], 'ro', markersize=8)
-        ax.annotate(f"Optimal Leverage: {optimal_leverage:.2f}\nGrowth Rate: {max_growth:.2%}", 
-                    xy=(optimal_leverage, max_growth),
-                    xytext=(optimal_leverage + 0.2, max_growth * 0.9),
-                    arrowprops=dict(arrowstyle="->", connectionstyle="arc3", color='red'),
-                    fontsize=8)  # Reduced font size
-        
-        # Add a vertical line at optimal leverage
-        ax.axvline(x=optimal_leverage, color='r', linestyle='--', alpha=0.3)
+        # Only add annotations if we have valid finite values
+        if np.isfinite(optimal_leverage) and np.isfinite(max_growth) and max_growth != 0:
+            # Mark the optimal leverage point - with smaller font
+            ax.plot([optimal_leverage], [max_growth], 'ro', markersize=8, label=f'Optimal: {optimal_leverage:.2f}x')
+            
+            # Calculate annotation position safely
+            text_x = float(optimal_leverage + 0.2)
+            text_y = float(max_growth * 0.9) if max_growth > 0 else float(max_growth * 1.1)
+            
+            # Only annotate if text position is valid
+            if np.isfinite(text_x) and np.isfinite(text_y):
+                ax.annotate(f"Optimal Leverage: {optimal_leverage:.2f}\nGrowth Rate: {max_growth:.2%}", 
+                            xy=(float(optimal_leverage), float(max_growth)),
+                            xytext=(text_x, text_y),
+                            arrowprops=dict(arrowstyle="->", connectionstyle="arc3", color='red'),
+                            fontsize=8)
+            
+            # Add a vertical line at optimal leverage
+            ax.axvline(x=optimal_leverage, color='r', linestyle='--', alpha=0.3)
+            
+            # Add fractional Kelly markers (1/2, 3/4)
+            half_kelly = optimal_leverage / 2
+            if np.isfinite(half_kelly):
+                ax.axvline(x=half_kelly, color='green', linestyle=':', alpha=0.5)
+                # Only annotate if position is valid
+                half_kelly_y = max_growth / 2 if max_growth > 0 else 0
+                if np.isfinite(half_kelly_y):
+                    ax.annotate("Half Kelly", xy=(float(half_kelly), 0), xytext=(float(half_kelly), float(half_kelly_y)),
+                               ha='center', va='center', rotation=90, color='green', fontsize=8)
         
         # Add a horizontal line at zero growth
         ax.axhline(y=0, color='k', linestyle='-', alpha=0.3)
-        
-        # Add fractional Kelly markers (1/2, 3/4)
-        half_kelly = optimal_leverage / 2
-        ax.axvline(x=half_kelly, color='green', linestyle=':', alpha=0.5)
-        ax.annotate("Half Kelly", xy=(half_kelly, 0), xytext=(half_kelly, max_growth / 2),
-                   ha='center', va='center', rotation=90, color='green', fontsize=8)  # Reduced font size
         
         # Skip hover labels since they clutter the plot and we have cleaned data
         
