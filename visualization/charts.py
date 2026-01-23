@@ -255,11 +255,11 @@ class ChartGenerator:
         """Plot the Kelly criterion curve showing growth rate vs. leverage."""
         figsize = figsize or self.figsize
         
-        # Wrap entire function in try-except to catch ANY matplotlib errors
+        # ULTRA-SAFE: Wrap everything and return fallback on ANY error
         try:
             fig, ax = plt.subplots(figsize=figsize)
             
-            # Convert to numpy arrays
+            # Convert and validate data
             if hasattr(growth_rates, 'values'):
                 growth_rates_array = np.array(growth_rates.values, dtype=float)
             elif isinstance(growth_rates, list):
@@ -274,65 +274,57 @@ class ChartGenerator:
             else:
                 leverage_values_array = np.array(leverage_values, dtype=float).copy()
                 
-            # Filter out NaN or infinite values
+            # Filter NaN/infinite
             valid_mask = np.isfinite(growth_rates_array) & np.isfinite(leverage_values_array)
             
             if not np.any(valid_mask) or len(growth_rates_array[valid_mask]) < 3:
-                ax.text(0.5, 0.5, "Insufficient valid data for Kelly curve",
-                       ha='center', va='center', fontsize=12, transform=ax.transAxes)
-                ax.set_title("Kelly Criterion: Growth Rate vs. Leverage")
-                plt.tight_layout()
-                return fig
+                raise ValueError("Insufficient valid data")
             
-            leverage_values_clean = leverage_values_array[valid_mask]
-            growth_rates_clean = growth_rates_array[valid_mask]
+            leverage_clean = leverage_values_array[valid_mask]
+            growth_clean = growth_rates_array[valid_mask]
             
-            # Plot the curve
-            ax.plot(leverage_values_clean, growth_rates_clean, 'b-', linewidth=2, label='Growth Rate')
+            # MINIMAL PLOT - NO LEGEND, NO FORMATTER, NO FANCY TEXT
+            ax.plot(leverage_clean, growth_clean, 'b-', linewidth=2)
             
-            # Find optimal leverage
+            # Find optimal
             if optimal_leverage is None or not np.isfinite(optimal_leverage):
-                max_idx = np.argmax(growth_rates_clean)
-                optimal_leverage = float(leverage_values_clean[max_idx])
-                max_growth = float(growth_rates_clean[max_idx])
+                max_idx = np.argmax(growth_clean)
+                optimal_leverage = float(leverage_clean[max_idx])
+                max_growth = float(growth_clean[max_idx])
             else:
                 optimal_leverage = float(optimal_leverage)
-                distances = np.abs(leverage_values_clean - optimal_leverage)
+                distances = np.abs(leverage_clean - optimal_leverage)
                 max_idx = np.argmin(distances)
-                max_growth = float(growth_rates_clean[max_idx])
-                optimal_leverage = float(leverage_values_clean[max_idx])
+                max_growth = float(growth_clean[max_idx])
+                optimal_leverage = float(leverage_clean[max_idx])
             
-            # Add markers (NO annotations)
+            # Add ONLY if valid
             if np.isfinite(optimal_leverage) and np.isfinite(max_growth):
-                ax.plot([optimal_leverage], [max_growth], 'ro', markersize=10, 
-                       label=f'Optimal: {optimal_leverage:.2f}x @ {max_growth:.2%}')
+                ax.plot([optimal_leverage], [max_growth], 'ro', markersize=10)
                 ax.axvline(x=optimal_leverage, color='r', linestyle='--', alpha=0.5, linewidth=2)
                 
                 half_kelly = optimal_leverage / 2
                 if np.isfinite(half_kelly):
-                    ax.axvline(x=half_kelly, color='green', linestyle=':', alpha=0.5, linewidth=2,
-                              label=f'Half Kelly: {half_kelly:.2f}x')
+                    ax.axvline(x=half_kelly, color='green', linestyle=':', alpha=0.5, linewidth=2)
             
-            ax.axhline(y=0, color='k', linestyle='-', alpha=0.3, linewidth=1)
-            ax.set_title("Kelly Criterion: Growth Rate vs. Leverage")
+            ax.axhline(y=0, color='k', linestyle='-', alpha=0.3)
+            ax.set_title(f"Kelly Curve (Optimal: {optimal_leverage:.2f}x)")
             ax.set_xlabel("Leverage")
-            ax.set_ylabel("Expected Growth Rate")
-            ax.grid(True)
-            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f"{y:.1%}"))
-            ax.legend()
+            ax.set_ylabel("Growth Rate")
+            ax.grid(True, alpha=0.3)
+            # NO LEGEND, NO FORMATTER - they can cause text rendering issues
             plt.tight_layout()
             return fig
             
         except Exception as e:
-            # Fallback chart
-            print(f"ERROR in Kelly curve: {e}")
+            # ABSOLUTE FALLBACK - bare minimum
+            print(f"Kelly curve error: {e}")
+            import traceback
+            traceback.print_exc()
             fig, ax = plt.subplots(figsize=figsize)
-            ax.text(0.5, 0.5, "Kelly Curve Rendering Error\n\nSee metrics above chart",
-                   ha='center', va='center', fontsize=14, transform=ax.transAxes,
-                   bbox=dict(boxstyle='round', facecolor='lightyellow'))
-            ax.set_title("Kelly Criterion Analysis")
+            ax.text(0.5, 0.5, f"Kelly Analysis\n\nOptimal Leverage: {optimal_leverage if 'optimal_leverage' in locals() and optimal_leverage else 'N/A'}",
+                   ha='center', va='center', fontsize=16, transform=ax.transAxes)
             ax.axis('off')
-            plt.tight_layout()
             return fig
     
     def plot_drawdown_risk(self, results_dict, figsize=None):
