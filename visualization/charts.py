@@ -359,44 +359,23 @@ class ChartGenerator:
             optimal_leverage = 1.0
             max_growth = 0.0
         
-        # Only add annotations if we have valid finite values
-        if np.isfinite(optimal_leverage) and np.isfinite(max_growth) and max_growth != 0:
-            try:
-                # Mark the optimal leverage point - with smaller font
-                ax.plot([optimal_leverage], [max_growth], 'ro', markersize=8, label=f'Optimal: {optimal_leverage:.2f}x')
-                
-                # Calculate annotation position safely
-                text_x = float(optimal_leverage + 0.2)
-                text_y = float(max_growth * 0.9) if max_growth > 0 else float(max_growth * 1.1)
-                
-                # Only annotate if text position is valid and not zero
-                if np.isfinite(text_x) and np.isfinite(text_y) and abs(text_y) > 1e-10:
-                    try:
-                        ax.annotate(f"Optimal Leverage: {optimal_leverage:.2f}\nGrowth Rate: {max_growth:.2%}", 
-                                    xy=(float(optimal_leverage), float(max_growth)),
-                                    xytext=(text_x, text_y),
-                                    arrowprops=dict(arrowstyle="->", connectionstyle="arc3", color='red'),
-                                    fontsize=8)
-                    except (TypeError, ValueError) as e:
-                        print(f"WARNING: Could not add optimal leverage annotation: {e}")
-                
-                # Add a vertical line at optimal leverage
-                ax.axvline(x=optimal_leverage, color='r', linestyle='--', alpha=0.3)
-                
-                # Add fractional Kelly markers (1/2, 3/4) - WITHOUT text annotation to avoid issues
-                half_kelly = optimal_leverage / 2
-                if np.isfinite(half_kelly) and half_kelly > 0:
-                    ax.axvline(x=half_kelly, color='green', linestyle=':', alpha=0.5, label='Half Kelly')
-                    # Skip text annotation for Half Kelly as it causes issues
-                    
-            except Exception as e:
-                print(f"WARNING: Error adding Kelly curve annotations: {e}")
-                # Continue without annotations
+        # Add markers WITHOUT any text annotations to prevent matplotlib text rendering errors
+        if np.isfinite(optimal_leverage) and np.isfinite(max_growth):
+            # Mark the optimal leverage point - NO annotations, just marker and legend
+            ax.plot([optimal_leverage], [max_growth], 'ro', markersize=10, 
+                   label=f'Optimal Leverage: {optimal_leverage:.2f}x @ {max_growth:.2%} growth')
+            
+            # Add a vertical line at optimal leverage
+            ax.axvline(x=optimal_leverage, color='r', linestyle='--', alpha=0.5, linewidth=2)
+            
+            # Add fractional Kelly markers - NO text annotations
+            half_kelly = optimal_leverage / 2
+            if np.isfinite(half_kelly) and half_kelly > 0:
+                ax.axvline(x=half_kelly, color='green', linestyle=':', alpha=0.5, linewidth=2,
+                          label=f'Half Kelly: {half_kelly:.2f}x')
         
         # Add a horizontal line at zero growth
-        ax.axhline(y=0, color='k', linestyle='-', alpha=0.3)
-        
-        # Skip hover labels since they clutter the plot and we have cleaned data
+        ax.axhline(y=0, color='k', linestyle='-', alpha=0.3, linewidth=1)
         
         # Customize plot
         ax.set_title("Kelly Criterion: Growth Rate vs. Leverage")
