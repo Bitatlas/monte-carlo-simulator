@@ -275,43 +275,89 @@ class ChartGenerator:
         
         fig, ax = plt.subplots(figsize=figsize)
         
-        # Fix: Make a copy of growth_rates to ensure it's a properly formatted array
+        # Convert to numpy array and handle various input formats
         if hasattr(growth_rates, 'values'):
-            growth_rates_array = growth_rates.values
+            growth_rates_array = np.array(growth_rates.values, dtype=float)
         elif isinstance(growth_rates, list):
-            growth_rates_array = np.array(growth_rates)
+            growth_rates_array = np.array(growth_rates, dtype=float)
         else:
-            growth_rates_array = growth_rates.copy()
+            growth_rates_array = np.array(growth_rates, dtype=float).copy()
+        
+        # Convert leverage_values to numpy array as well
+        if hasattr(leverage_values, 'values'):
+            leverage_values_array = np.array(leverage_values.values, dtype=float)
+        elif isinstance(leverage_values, list):
+            leverage_values_array = np.array(leverage_values, dtype=float)
+        else:
+            leverage_values_array = np.array(leverage_values, dtype=float).copy()
             
+        # Critical: Filter out NaN or infinite values
+        valid_mask = np.isfinite(growth_rates_array) & np.isfinite(leverage_values_array)
+        
+        if not np.any(valid_mask):
+            # All values are invalid - create a default chart with explanation
+            ax.text(0.5, 0.5, 
+                   "Unable to calculate Kelly curve\ndue to insufficient or invalid data.\n\nThis may occur when:\n"
+                   "- Historical returns data is unavailable\n- Market data quality is poor\n"
+                   "- Asset has extreme volatility",
+                   ha='center', va='center', fontsize=12, transform=ax.transAxes,
+                   bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+            ax.set_title("Kelly Criterion: Growth Rate vs. Leverage")
+            ax.set_xlabel("Leverage")
+            ax.set_ylabel("Expected Growth Rate")
+            plt.tight_layout()
+            return fig
+        
+        # Filter to valid values only
+        leverage_values_clean = leverage_values_array[valid_mask]
+        growth_rates_clean = growth_rates_array[valid_mask]
+        
         # Debug information
-        print(f"DEBUG - Growth rates min: {np.min(growth_rates_array)}, max: {np.max(growth_rates_array)}")
+        print(f"DEBUG - Growth rates min: {np.min(growth_rates_clean):.6f}, max: {np.max(growth_rates_clean):.6f}")
+        print(f"DEBUG - Valid data points: {len(growth_rates_clean)} out of {len(growth_rates_array)}")
         
-        # If all growth rates are negative, this indicates a potential issue with the calculation
-        if np.max(growth_rates_array) < 0:
-            # Adjust to ensure we have at least some positive values to display
-            # This is a temporary fix - the underlying calculation should be fixed
-            growth_rates_array = growth_rates_array - np.min(growth_rates_array) + 0.0001
-            print("WARNING: All growth rates were negative. Adjusted for display purposes only.")
+        # Check if we have enough valid data points
+        if len(growth_rates_clean) < 3:
+            ax.text(0.5, 0.5, 
+                   f"Insufficient valid data points ({len(growth_rates_clean)}).\n"
+                   "Unable to generate Kelly curve.",
+                   ha='center', va='center', fontsize=12, transform=ax.transAxes,
+                   bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+            ax.set_title("Kelly Criterion: Growth Rate vs. Leverage")
+            ax.set_xlabel("Leverage")
+            ax.set_ylabel("Expected Growth Rate")
+            plt.tight_layout()
+            return fig
         
-        # Plot the growth rate curve
-        ax.plot(leverage_values, growth_rates_array, 'b-', linewidth=2)
+        # Plot the growth rate curve with cleaned data
+        ax.plot(leverage_values_clean, growth_rates_clean, 'b-', linewidth=2, label='Growth Rate')
         
         # Find and mark the maximum growth rate
-        if optimal_leverage is None:
-            max_idx = np.argmax(growth_rates_array)
-            optimal_leverage = leverage_values[max_idx]
+        if optimal_leverage is None or not np.isfinite(optimal_leverage):
+            # Find maximum from clean data
+            max_idx = np.argmax(growth_rates_clean)
+            optimal_leverage = float(leverage_values_clean[max_idx])
+            max_growth = float(growth_rates_clean[max_idx])
         else:
-            # Find the nearest index
-            max_idx = np.abs(leverage_values - optimal_leverage).argmin()
+            # Find the nearest index to the provided optimal leverage
+            try:
+                optimal_leverage = float(optimal_leverage)
+                distances = np.abs(leverage_values_clean - optimal_leverage)
+                max_idx = np.argmin(distances)
+                max_growth = float(growth_rates_clean[max_idx])
+                # Update optimal_leverage to match actual data point
+                optimal_leverage = float(leverage_values_clean[max_idx])
+            except:
+                # Fallback to maximum
+                max_idx = np.argmax(growth_rates_clean)
+                optimal_leverage = float(leverage_values_clean[max_idx])
+                max_growth = float(growth_rates_clean[max_idx])
         
-        # Ensure max_growth is a float
-        max_growth = growth_rates_array[max_idx]
-        if hasattr(max_growth, 'iloc'):
-            max_growth = float(max_growth.iloc[0])
-        elif hasattr(max_growth, 'item'):
-            max_growth = max_growth.item()
-        else:
-            max_growth = float(max_growth)
+        # Ensure all values are valid before plotting
+        if not (np.isfinite(optimal_leverage) and np.isfinite(max_growth)):
+            print("WARNING: Optimal leverage or max growth is not finite. Using fallback values.")
+            optimal_leverage = 1.0
+            max_growth = 0.0
         
         # Mark the optimal leverage point - with smaller font
         ax.plot([optimal_leverage], [max_growth], 'ro', markersize=8)
@@ -333,14 +379,7 @@ class ChartGenerator:
         ax.annotate("Half Kelly", xy=(half_kelly, 0), xytext=(half_kelly, max_growth / 2),
                    ha='center', va='center', rotation=90, color='green', fontsize=8)  # Reduced font size
         
-        # Add hover labels to the plot using annotate - with smaller font
-        for i in range(0, len(leverage_values), 10):  # Add annotations every 10 points to avoid clutter
-            lev = leverage_values[i]
-            growth = growth_rates_array[i]
-            ax.annotate(f"Leverage: {lev:.1f}x\nGrowth: {growth:.2%}",
-                       xy=(lev, growth), xytext=(0, 10), textcoords='offset points',
-                       bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0),
-                       ha='center', va='bottom', fontsize=7)  # Reduced font size
+        # Skip hover labels since they clutter the plot and we have cleaned data
         
         # Customize plot
         ax.set_title("Kelly Criterion: Growth Rate vs. Leverage")
