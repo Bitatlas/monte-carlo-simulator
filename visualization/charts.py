@@ -252,13 +252,10 @@ class ChartGenerator:
         return fig
     
     def plot_kelly_curve(self, leverage_values, growth_rates, optimal_leverage=None, figsize=None):
-        """Plot the Kelly criterion curve showing growth rate vs. leverage."""
-        figsize = figsize or self.figsize
+        """Plot the Kelly criterion curve using Plotly (more robust than matplotlib)."""
         
-        # ULTRA-SAFE: Wrap everything and return fallback on ANY error
+        # USE PLOTLY INSTEAD OF MATPLOTLIB - it doesn't have text rendering coordinate issues
         try:
-            fig, ax = plt.subplots(figsize=figsize)
-            
             # Convert and validate data
             if hasattr(growth_rates, 'values'):
                 growth_rates_array = np.array(growth_rates.values, dtype=float)
@@ -278,15 +275,20 @@ class ChartGenerator:
             valid_mask = np.isfinite(growth_rates_array) & np.isfinite(leverage_values_array)
             
             if not np.any(valid_mask) or len(growth_rates_array[valid_mask]) < 3:
-                raise ValueError("Insufficient valid data")
+                # Return simple message figure
+                fig = go.Figure()
+                fig.add_annotation(text="Insufficient valid data for Kelly curve",
+                                  xref="paper", yref="paper",
+                                  x=0.5, y=0.5, showarrow=False, font=dict(size=16))
+                fig.update_layout(title="Kelly Criterion Analysis",
+                                 xaxis=dict(visible=False),
+                                 yaxis=dict(visible=False))
+                return fig
             
             leverage_clean = leverage_values_array[valid_mask]
             growth_clean = growth_rates_array[valid_mask]
             
-            # MINIMAL PLOT - NO LEGEND, NO FORMATTER, NO FANCY TEXT
-            ax.plot(leverage_clean, growth_clean, 'b-', linewidth=2)
-            
-            # Find optimal
+            # Find optimal leverage
             if optimal_leverage is None or not np.isfinite(optimal_leverage):
                 max_idx = np.argmax(growth_clean)
                 optimal_leverage = float(leverage_clean[max_idx])
@@ -298,33 +300,90 @@ class ChartGenerator:
                 max_growth = float(growth_clean[max_idx])
                 optimal_leverage = float(leverage_clean[max_idx])
             
-            # Add ONLY if valid
+            # Create beautiful Plotly figure
+            fig = go.Figure()
+            
+            # Add main curve
+            fig.add_trace(go.Scatter(
+                x=leverage_clean,
+                y=growth_clean,
+                mode='lines',
+                name='Growth Rate',
+                line=dict(color='#1f77b4', width=3),
+                hovertemplate='Leverage: %{x:.2f}x<br>Growth Rate: %{y:.2%}<extra></extra>'
+            ))
+            
+            # Add optimal leverage point
             if np.isfinite(optimal_leverage) and np.isfinite(max_growth):
-                ax.plot([optimal_leverage], [max_growth], 'ro', markersize=10)
-                ax.axvline(x=optimal_leverage, color='r', linestyle='--', alpha=0.5, linewidth=2)
+                fig.add_trace(go.Scatter(
+                    x=[optimal_leverage],
+                    y=[max_growth],
+                    mode='markers',
+                    name=f'Optimal Leverage: {optimal_leverage:.2f}x',
+                    marker=dict(color='red', size=12, symbol='circle'),
+                    hovertemplate=f'Optimal: {optimal_leverage:.2f}x<br>Growth: {max_growth:.2%}<extra></extra>'
+                ))
                 
+                # Add vertical line at optimal
+                fig.add_vline(x=optimal_leverage, line_dash="dash", line_color="red", opacity=0.7,
+                             annotation_text=f"Optimal: {optimal_leverage:.2f}x",
+                             annotation_position="top")
+                
+                # Add Half Kelly line
                 half_kelly = optimal_leverage / 2
                 if np.isfinite(half_kelly):
-                    ax.axvline(x=half_kelly, color='green', linestyle=':', alpha=0.5, linewidth=2)
+                    fig.add_vline(x=half_kelly, line_dash="dot", line_color="green", opacity=0.7,
+                                 annotation_text=f"Half Kelly: {half_kelly:.2f}x",
+                                 annotation_position="bottom")
             
-            ax.axhline(y=0, color='k', linestyle='-', alpha=0.3)
-            ax.set_title(f"Kelly Curve (Optimal: {optimal_leverage:.2f}x)")
-            ax.set_xlabel("Leverage")
-            ax.set_ylabel("Growth Rate")
-            ax.grid(True, alpha=0.3)
-            # NO LEGEND, NO FORMATTER - they can cause text rendering issues
-            plt.tight_layout()
+            # Add zero line
+            fig.add_hline(y=0, line_dash="solid", line_color="gray", opacity=0.5)
+            
+            # Update layout with beautiful styling
+            fig.update_layout(
+                title=dict(
+                    text=f"Kelly Criterion: Growth Rate vs. Leverage<br><sub>Optimal Leverage: {optimal_leverage:.2f}x @ {max_growth:.2%} Growth</sub>",
+                    x=0.5,
+                    xanchor='center'
+                ),
+                xaxis=dict(
+                    title="Leverage",
+                    gridcolor='lightgray',
+                    showgrid=True
+                ),
+                yaxis=dict(
+                    title="Expected Growth Rate",
+                    tickformat='.1%',
+                    gridcolor='lightgray',
+                    showgrid=True
+                ),
+                hovermode='x unified',
+                template='plotly_white',
+                height=500,
+                showlegend=True,
+                legend=dict(
+                    yanchor="top",
+                    y=0.99,
+                    xanchor="left",
+                    x=0.01
+                )
+            )
+            
             return fig
             
         except Exception as e:
-            # ABSOLUTE FALLBACK - bare minimum
+            # Fallback to simple Plotly figure
             print(f"Kelly curve error: {e}")
             import traceback
             traceback.print_exc()
-            fig, ax = plt.subplots(figsize=figsize)
-            ax.text(0.5, 0.5, f"Kelly Analysis\n\nOptimal Leverage: {optimal_leverage if 'optimal_leverage' in locals() and optimal_leverage else 'N/A'}",
-                   ha='center', va='center', fontsize=16, transform=ax.transAxes)
-            ax.axis('off')
+            
+            fig = go.Figure()
+            fig.add_annotation(
+                text=f"Kelly Analysis<br><br>Optimal Leverage: {optimal_leverage if 'optimal_leverage' in locals() and optimal_leverage else 'N/A'}",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False, font=dict(size=18)
+            )
+            fig.update_layout(title="Kelly Criterion Analysis")
             return fig
     
     def plot_drawdown_risk(self, results_dict, figsize=None):

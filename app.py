@@ -1530,7 +1530,7 @@ if st.button("Run Simulation"):
                         kelly_result['leverage_curve'][1],
                         kelly_result['leverage_curve'][2]
                     )
-                    st.pyplot(kelly_fig)
+                    st.plotly_chart(kelly_fig, use_container_width=True)
                     
                     # Explanation of Kelly Criterion with tooltips
                     st.markdown('<div class="sub-header">Understanding the Kelly Criterion</div>', unsafe_allow_html=True)
