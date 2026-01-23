@@ -73,12 +73,12 @@ class MonteCarloModel(BaseModel):
             Simulation results including statistics and paths
         """
         # For debugging: Print the mean and std of the returns being used
-        if hasattr(self.returns, 'mean'):
+        if hasattr(self.returns, 'mean') and len(self.returns) > 0:
             print(f"DEBUG - Asset: {self.asset_name}")
             
-            # Get mean as float value
-            mean_daily = float(self.returns.iloc[0]) if hasattr(self.returns, 'iloc') else float(self.returns.mean())
-            std_daily = float(self.returns.iloc[0]) if hasattr(self.returns.std(), 'iloc') else float(self.returns.std())
+            # Get mean and std as float values
+            mean_daily = float(self.returns.mean())
+            std_daily = float(self.returns.std())
             
             print(f"DEBUG - Mean daily return: {mean_daily * 100:.6f}%")
             print(f"DEBUG - Annual return (approx): {mean_daily * 252 * 100:.2f}%")
