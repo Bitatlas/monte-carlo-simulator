@@ -10,12 +10,13 @@ import os
 from data.fetchers import (
     EquityIndexFetcher, 
     StockFetcher, 
-    CryptoFetcher, 
-    BondFetcher
+    BondFetcher,
+    SectorETFFetcher
 )
 from kelly_game import kelly_game_tab
 from models import (
     MonteCarloModel,
+    PortfolioMonteCarloModel,
     GeometricBrownianMotionModel,
     GARCHModel,
     MarkovChainModel,
@@ -564,7 +565,7 @@ st.sidebar.markdown('<div class="sub-header">🔍 Asset Selection</div>', unsafe
 
 asset_type = st.sidebar.selectbox(
     "Asset Type",
-    options=["📊 Equity Index", "🏢 Individual Stock", "₿ Cryptocurrency", "🔒 Bond"],
+    options=["📊 Equity Index", "🏢 Individual Stock", "📈 Sector ETF", "🔒 Bond"],
     index=0,
     help="Select the type of asset to simulate. Different asset classes have different historical return patterns, volatility characteristics, and risk profiles."
 )
@@ -686,16 +687,26 @@ elif asset_type == "🏢 Individual Stock" or asset_type == "Individual Stock":
             }.get(x, x),
             help="Select a stock ticker symbol"
         )
-elif asset_type == "₿ Cryptocurrency" or asset_type == "Cryptocurrency":
+elif asset_type == "📈 Sector ETF" or asset_type == "Sector ETF":
     asset = st.sidebar.selectbox(
-        "Cryptocurrency",
-        options=["BTC", "ETH"],
+        "Sector / Bond ETF",
+        options=["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "XLB", "XLC", "CLRE", "TLT"],
         index=0,
         format_func=lambda x: {
-            "BTC": "Bitcoin (BTC)",
-            "ETH": "Ethereum (ETH)"
+            "XLK":  "Technology (XLK)",
+            "XLF":  "Financials (XLF)",
+            "XLE":  "Energy (XLE)",
+            "XLV":  "Health Care (XLV)",
+            "XLY":  "Consumer Discretionary (XLY)",
+            "XLP":  "Consumer Staples (XLP)",
+            "XLI":  "Industrials (XLI)",
+            "XLU":  "Utilities (XLU)",
+            "XLB":  "Materials (XLB)",
+            "XLC":  "Communication Services (XLC)",
+            "CLRE": "Return Stacked Bonds & Futures (CLRE)",
+            "TLT":  "20+ Year Treasury Bond ETF (TLT)",
         }.get(x, x),
-        help="Select the cryptocurrency to simulate"
+        help="Select the sector or bond ETF to simulate"
     )
 else:  # Bond (🔒 Bond or Bond)
     asset = st.sidebar.selectbox(
@@ -891,13 +902,14 @@ elif model_type == "Feynman Path Integral":
     )
 
 # Initialize tabs (using CSS to make them bold rather than HTML tags)
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📊 Dashboard", 
     "🔬 Simulation Details", 
     "📈 Kelly Analysis", 
     "🛠️ Use Cases", 
     "ℹ️ About Models", 
-    "🎮 Kelly Game"
+    "🎮 Kelly Game",
+    "🗂️ Portfolio Simulator"
 ])
 
 # Add even stronger CSS to make tab text bold
@@ -929,8 +941,8 @@ def fetch_asset_data(asset_type, asset, period):
             fetcher = EquityIndexFetcher(index_type=asset, period=period)
         elif asset_type == "🏢 Individual Stock" or asset_type == "Individual Stock":
             fetcher = StockFetcher(ticker=asset, period=period)
-        elif asset_type == "₿ Cryptocurrency" or asset_type == "Cryptocurrency":
-            fetcher = CryptoFetcher(crypto_type=asset, period=period)
+        elif asset_type == "📈 Sector ETF" or asset_type == "Sector ETF":
+            fetcher = SectorETFFetcher(etf_ticker=asset, period=period)
         else:  # Bond (🔒 Bond or Bond)
             fetcher = BondFetcher(bond_type=asset, period=period)
         
@@ -1747,6 +1759,237 @@ with tab6:
         # Main game display
         kelly_game_tab()
 
+# ─────────────────────────────────────────────────────────────
+# Portfolio Simulator tab (tab7)
+# ─────────────────────────────────────────────────────────────
+with tab7:
+    st.markdown('<div class="sub-header">🗂️ Portfolio Simulator</div>', unsafe_allow_html=True)
+    st.markdown("Build a multi-asset portfolio (up to 3 assets), simulate it with correlated returns, "
+                "optional rebalancing, and Dollar-Cost Averaging.")
+
+    # ── helper to build one asset selector inside a column ──────────────
+    ASSET_TYPE_OPTIONS = ["📊 Equity Index", "🏢 Individual Stock", "📈 Sector ETF", "🔒 Bond"]
+
+    def _asset_selector(prefix, col):
+        """Render asset-type + asset dropdowns inside a Streamlit column."""
+        with col:
+            atype = st.selectbox(
+                f"Asset Type",
+                options=ASSET_TYPE_OPTIONS,
+                key=f"{prefix}_type"
+            )
+            if atype == "📊 Equity Index":
+                asset = st.selectbox(
+                    "Index",
+                    options=["SP500", "NASDAQ", "EURO_STOXX50", "STOXX600"],
+                    format_func=lambda x: {"SP500":"S&P 500","NASDAQ":"Nasdaq 100",
+                                           "EURO_STOXX50":"Euro Stoxx 50","STOXX600":"STOXX Europe 600"}.get(x, x),
+                    key=f"{prefix}_asset"
+                )
+            elif atype == "🏢 Individual Stock":
+                asset = st.text_input("Ticker symbol", value="AAPL", key=f"{prefix}_asset")
+            elif atype == "📈 Sector ETF":
+                asset = st.selectbox(
+                    "ETF",
+                    options=["XLK","XLF","XLE","XLV","XLY","XLP","XLI","XLU","XLB","XLC","CLRE","TLT"],
+                    format_func=lambda x: {"XLK":"Technology (XLK)","XLF":"Financials (XLF)",
+                        "XLE":"Energy (XLE)","XLV":"Health Care (XLV)","XLY":"Consumer Disc. (XLY)",
+                        "XLP":"Consumer Staples (XLP)","XLI":"Industrials (XLI)","XLU":"Utilities (XLU)",
+                        "XLB":"Materials (XLB)","XLC":"Comm. Services (XLC)",
+                        "CLRE":"Return Stacked Bonds & Futures (CLRE)","TLT":"20+ Yr Treasury ETF (TLT)"}.get(x, x),
+                    key=f"{prefix}_asset"
+                )
+            else:  # Bond
+                asset = st.selectbox(
+                    "Bond",
+                    options=["US10Y","US30Y","US3M","TLT","IEF","SHY"],
+                    format_func=lambda x: {"US10Y":"10-Yr US Treasury","US30Y":"30-Yr US Treasury",
+                        "US3M":"3-Mo US Treasury","TLT":"20+ Yr Treasury ETF",
+                        "IEF":"7-10 Yr Treasury ETF","SHY":"1-3 Yr Treasury ETF"}.get(x, x),
+                    key=f"{prefix}_asset"
+                )
+        return atype, asset
+
+    # ── number of assets ─────────────────────────────────────────────────
+    n_pf_assets = st.radio("Number of assets in portfolio", [2, 3], horizontal=True, key="pf_n_assets")
+
+    # ── asset selectors ───────────────────────────────────────────────────
+    pf_cols = st.columns(n_pf_assets)
+    pf_assets = []
+    for i in range(n_pf_assets):
+        atype, asset = _asset_selector(f"pf_a{i}", pf_cols[i])
+        pf_assets.append((atype, asset))
+
+    # ── weights ───────────────────────────────────────────────────────────
+    st.markdown("#### 📐 Portfolio Weights")
+    weight_cols = st.columns(n_pf_assets)
+    raw_weights = []
+    for i, col in enumerate(weight_cols):
+        default = round(100 / n_pf_assets)
+        w = col.number_input(f"Asset {i+1} weight (%)", min_value=1, max_value=99,
+                             value=default, step=1, key=f"pf_w{i}")
+        raw_weights.append(w)
+    total_w = sum(raw_weights)
+    weights_norm = [w / total_w for w in raw_weights]
+    if abs(total_w - 100) > 0.5:
+        st.warning(f"Weights sum to {total_w}% — will be auto-normalised to 100%.")
+    else:
+        st.caption(f"✅ Weights sum to {total_w}%")
+
+    # ── investment / horizon params ───────────────────────────────────────
+    st.markdown("#### 💰 Investment Parameters")
+    pc1, pc2, pc3 = st.columns(3)
+    pf_investment = pc1.number_input("Initial Investment ($)", min_value=1000, max_value=10_000_000,
+                                      value=10_000, step=1000, key="pf_investment")
+    pf_horizon    = pc2.slider("Time Horizon (years)", 1, 30, 10, key="pf_horizon")
+    pf_sims       = pc3.slider("Simulations", 100, 2000, 500, step=100, key="pf_sims")
+    pf_data_yrs   = st.slider("Historical Data Years", 1, 30, 10, key="pf_data_yrs",
+                               help="Years of history used to estimate correlations and returns")
+
+    # ── rebalancing ───────────────────────────────────────────────────────
+    st.markdown("#### 🔄 Rebalancing")
+    st.caption("Rebalancing periodically resets weights back to targets by selling over-weight assets "
+               "and buying under-weight ones — this can add a 'rebalancing bonus' in volatile markets.")
+    rb_on = st.toggle("Enable rebalancing", key="pf_rb_on")
+    rebal_freq = None
+    txn_cost   = 0.001
+    if rb_on:
+        rbc1, rbc2 = st.columns(2)
+        rebal_freq = rbc1.selectbox("Rebalancing frequency",
+                                     ["monthly", "quarterly", "annually"], index=1, key="pf_rb_freq")
+        txn_cost_pct = rbc2.slider(
+            "Transaction cost (%)", min_value=0.0, max_value=0.5, value=0.1, step=0.05,
+            key="pf_txn",
+            help="Cost per dollar traded at each rebalancing event (e.g. 0.1% covers ETF spread + brokerage). "
+                 "Applied to the absolute value of each trade, so a rebalance moving $500 incurs $0.50 at 0.1%."
+        )
+        txn_cost = txn_cost_pct / 100
+
+    # ── DCA ───────────────────────────────────────────────────────────────
+    st.markdown("#### 💸 Dollar-Cost Averaging (DCA)")
+    st.caption("DCA adds a fixed amount at regular intervals, regardless of market conditions, "
+               "reducing the impact of market timing.")
+    dca_on = st.toggle("Enable DCA", key="pf_dca_on")
+    dca_amount = 0
+    dca_freq   = None
+    if dca_on:
+        dcac1, dcac2 = st.columns(2)
+        dca_amount = dcac1.number_input("Contribution per period ($)", min_value=100, max_value=100_000,
+                                         value=500, step=100, key="pf_dca_amt")
+        dca_freq   = dcac2.selectbox("Contribution frequency",
+                                      ["monthly", "quarterly"], index=0, key="pf_dca_freq")
+
+    # ── run ───────────────────────────────────────────────────────────────
+    if st.button("▶ Run Portfolio Simulation", use_container_width=True, key="pf_run"):
+        pf_period = f"{pf_data_yrs}y" if pf_data_yrs <= 10 else "max"
+
+        with st.spinner("Fetching data & running portfolio simulation…"):
+            try:
+                # Fetch all assets
+                pf_asset_data_list = []
+                fetch_ok = True
+                for atype, asset in pf_assets:
+                    d = fetch_asset_data(atype, asset, pf_period)
+                    if d is None:
+                        st.error(f"Could not fetch data for {asset}. Please check the ticker.")
+                        fetch_ok = False
+                        break
+                    pf_asset_data_list.append(d.get('fetcher').get_data_for_simulation()
+                                               if hasattr(d.get('fetcher', None), 'get_data_for_simulation')
+                                               else {'returns': d['returns']['daily'], 'name': d['name']})
+
+                if fetch_ok:
+                    model = PortfolioMonteCarloModel(
+                        assets_data=pf_asset_data_list,
+                        weights=weights_norm,
+                        investment_amount=pf_investment,
+                        time_horizon_years=pf_horizon,
+                        num_simulations=pf_sims,
+                        rebalancing_frequency=rebal_freq,
+                        transaction_cost=txn_cost,
+                        dca_amount=dca_amount,
+                        dca_frequency=dca_freq,
+                    )
+                    pf_result = model.simulate()
+
+                    # ── dashboard ─────────────────────────────────────────
+                    st.markdown("---")
+                    st.markdown('<div class="sub-header">📊 Portfolio Simulation Results</div>',
+                                unsafe_allow_html=True)
+
+                    # Allocation summary
+                    alloc_str = "  |  ".join(
+                        f"**{pf_assets[i][1]}**: {weights_norm[i]*100:.1f}%"
+                        for i in range(n_pf_assets)
+                    )
+                    st.caption(f"Portfolio: {alloc_str}")
+
+                    avg_invested = pf_result['total_invested']
+                    stats = pf_result['stats']
+
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("Total Invested (avg)", f"${avg_invested:,.0f}")
+                    m2.metric("Median Final Value",
+                              f"${stats['median']:,.0f}",
+                              f"95% CI: ${stats['percentiles']['5%']:,.0f}–${stats['percentiles']['95%']:,.0f}")
+                    m3.metric("Median CAGR",
+                              f"{stats['cagr']['median']*100:.2f}%",
+                              f"95% CI: {stats['cagr']['percentiles']['5%']*100:.2f}%–{stats['cagr']['percentiles']['95%']*100:.2f}%")
+                    m4.metric("Avg Transaction Costs",
+                              f"${stats['avg_transaction_costs']:,.0f}" if rb_on else "N/A")
+
+                    # Path analysis
+                    st.markdown("#### Path Analysis")
+                    bc = stats['bust_counters']
+                    pa1, pa2, pa3 = st.columns(3)
+                    pa1.metric("Major Loss (>99%)",
+                               f"{bc['total_ruin']} paths",
+                               f"{bc['total_ruin_pct']*100:.2f}%", delta_color="inverse")
+                    pa2.metric("Below Total Invested",
+                               f"{bc['below_initial']} paths",
+                               f"{bc['below_initial_pct']*100:.2f}%", delta_color="inverse")
+                    pa3.metric("Above Total Invested",
+                               f"{bc['above_initial']} paths",
+                               f"{bc['above_initial_pct']*100:.2f}%")
+
+                    # Paths chart
+                    st.markdown("#### Simulation Paths")
+                    import plotly.graph_objects as go
+                    paths_df = pf_result['paths']
+                    fig_paths = go.Figure()
+                    for col in paths_df.columns[:50]:
+                        fig_paths.add_trace(go.Scatter(
+                            x=paths_df.index, y=paths_df[col],
+                            mode='lines', line=dict(width=0.6, color='rgba(30,136,229,0.25)'),
+                            showlegend=False
+                        ))
+                    # Median path
+                    fig_paths.add_trace(go.Scatter(
+                        x=paths_df.index, y=paths_df.median(axis=1),
+                        mode='lines', line=dict(width=2.5, color='#FF7043'),
+                        name='Median'
+                    ))
+                    fig_paths.update_layout(
+                        title="Portfolio Value Paths",
+                        xaxis_title="Date", yaxis_title="Portfolio Value ($)",
+                        template="plotly_dark", height=420,
+                        margin=dict(l=40, r=20, t=50, b=40)
+                    )
+                    st.plotly_chart(fig_paths, use_container_width=True)
+
+                    # Correlation matrix
+                    st.markdown("#### 🔗 Historical Correlation Matrix")
+                    st.caption("Used to generate realistically correlated returns in the simulation.")
+                    corr_df = pd.DataFrame(
+                        pf_result['correlation_matrix'],
+                        index=pf_result['asset_names'],
+                        columns=pf_result['asset_names']
+                    ).round(3)
+                    st.dataframe(corr_df.style.background_gradient(cmap='RdYlGn', vmin=-1, vmax=1))
+
+            except Exception as e:
+                st.error(f"Portfolio simulation error: {e}")
+
 # About the Author Section
 st.markdown("---")
 with st.expander("About the Author", expanded=False):
@@ -1755,13 +1998,26 @@ with st.expander("About the Author", expanded=False):
         <div style="flex: 1;">
             <h3>Henrique Centieiro</h3>
             <p class="info-text">
-                Henrique Centieiro is a financial engineer, quantitative analyst, Research Lead at peaq network, Venture Partner at Harbour Industrial Capital and former Senior Research Manager at HashKey Capital, a venture capital firm focused on blockchain investments. With expertise spanning Monte Carlo simulations, portfolio theory, and blockchain technology, he has been working in the tech industry since 2004 and often is invited to teach at different universities, including at the University of Hong Kong business school.
+                Henrique Centieiro is a financial engineer, quantitative analyst, Hedge Fund Manager at
+                <strong>Maverick Capital</strong>, and Founder of <strong>Henrique Wealth Academy</strong>.
+                With expertise spanning Monte Carlo simulations, portfolio theory, and quantitative finance,
+                he has been working in the finance and tech industry since 2004 and is frequently invited to
+                teach at leading universities, including the University of Hong Kong business school.
             </p>
             <p class="info-text">
-                As the developer of OptiFolio Simulator, Henrique combines mathematical rigor with practical financial applications, making sophisticated investment strategies accessible to both individual and institutional investors. He is renowned for his pioneering work on leveraged ETFs, having developed the "Optimal Leverage Indicator" to help investors determine appropriate leverage levels based on asset volatility and returns. His extensive research on leveraged investing strategies has been published in multiple articles on Limitless Investor and is taught through his "Leveraged ETFs Masterclass" course.
+                As the developer of OptiFolio Simulator, Henrique combines mathematical rigor with practical
+                financial applications, making sophisticated investment strategies accessible to both individual
+                and institutional investors. He is renowned for his pioneering work on leveraged ETFs, having
+                developed the "Optimal Leverage Indicator" to help investors determine appropriate leverage
+                levels based on asset volatility and returns. His extensive research on leveraged investing
+                strategies has been published in multiple articles on Limitless Investor and is taught through
+                his "Leveraged ETFs Masterclass" course.
             </p>
             <p class="info-text">
-                Beyond his financial research, Henrique is an 8X Medium Top Writer who shares insights on AI, cryptocurrency, investing, and financial mindsets. He is also the Founder of the "Be Limitless" community, dedicated to financial education and empowering investors through data-driven decision making.
+                Beyond his financial research, Henrique is an 8X Medium Top Writer who shares insights on
+                quantitative finance, investing, and financial mindsets. He is also the Founder of the
+                "Be Limitless" community, dedicated to financial education and empowering investors through
+                data-driven decision making.
             </p>
             <p class="info-text">
                 <i>For more alpha, follow <a href="https://linktr.ee/cryptohenri" target="_blank">https://linktr.ee/cryptohenri</a></i>

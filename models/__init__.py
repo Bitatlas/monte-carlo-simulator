@@ -1,5 +1,6 @@
 from .base_model import BaseModel
 from .monte_carlo import MonteCarloModel
+from .portfolio_model import PortfolioMonteCarloModel
 from .brownian_motion import GeometricBrownianMotionModel
 from .markov_chain import MarkovChainModel
 from .path_integral import FeynmanPathIntegralModel
@@ -18,6 +19,7 @@ except ImportError:
 __all__ = [
     'BaseModel',
     'MonteCarloModel',
+    'PortfolioMonteCarloModel',
     'GeometricBrownianMotionModel',
     'GARCHModel',
     'MarkovChainModel',
