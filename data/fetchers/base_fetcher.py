@@ -182,17 +182,16 @@ class BaseFetcher(ABC):
         str
             Name of the price column
         """
-        # Default implementation - override if needed
-        if 'Adj Close' in self.data.columns:
-            return 'Adj Close'
-        elif 'Close' in self.data.columns:
-            return 'Close'
-        elif 'Price' in self.data.columns:
-            return 'Price'
-        else:
-            # If none of the expected columns are found, use the first numeric column
-            numeric_cols = self.data.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) > 0:
-                return numeric_cols[0]
-            else:
-                raise ValueError("No suitable price column found in the data")
+        # Check preferred columns in order, skipping any that are entirely NaN
+        # (newer yfinance may return 'Adj Close' as all-NaN for index tickers)
+        for col_name in ['Adj Close', 'Close', 'Price']:
+            if col_name in self.data.columns and self.data[col_name].notna().any():
+                return col_name
+        
+        # Fall back to first numeric column that has actual data
+        numeric_cols = self.data.select_dtypes(include=[np.number]).columns
+        for col in numeric_cols:
+            if self.data[col].notna().any():
+                return col
+        
+        raise ValueError("No suitable price column found in the data")
