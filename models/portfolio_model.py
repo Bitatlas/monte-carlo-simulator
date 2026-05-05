@@ -142,8 +142,11 @@ class PortfolioMonteCarloModel:
 
         for day in range(self.total_days):
             # --- generate correlated daily returns ---
-            Z = np.random.standard_normal((S, n))          # uncorrelated
-            corr_returns = Z @ self.cholesky.T              # correlated
+            # Z gives the random noise; add historical mean drift so the simulation
+            # has the correct expected return (without this the median declines from
+            # pure volatility drag with zero drift).
+            Z = np.random.standard_normal((S, n))                        # uncorrelated
+            corr_returns = self.means[np.newaxis, :] + Z @ self.cholesky.T  # drift + correlated noise
 
             portfolio *= (1.0 + corr_returns)
 
