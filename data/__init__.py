@@ -2,14 +2,14 @@ from .fetchers import (
     BaseFetcher,
     EquityIndexFetcher,
     StockFetcher,
-    CryptoFetcher,
     BondFetcher,
+    SectorETFFetcher,
 )
 
 __all__ = [
     'BaseFetcher',
     'EquityIndexFetcher',
     'StockFetcher',
-    'CryptoFetcher',
     'BondFetcher',
+    'SectorETFFetcher',
 ]
