@@ -7,7 +7,7 @@ import random
 from typing import Dict, List, Tuple, Optional, Union, Any
 
 # Import from existing modules
-from data.fetchers import EquityIndexFetcher, StockFetcher, CryptoFetcher, BondFetcher
+from data.fetchers import EquityIndexFetcher, StockFetcher, BondFetcher, SectorETFFetcher
 from optimization import KellyCalculator
 
 class BaseKellyGameSimulator:
@@ -370,8 +370,8 @@ def fetch_asset_data(asset_type: str, asset: str, period: str = "10y"):
             fetcher = EquityIndexFetcher(index_type=asset, period=period)
         elif asset_type == "🏢 Individual Stock" or asset_type == "Individual Stock":
             fetcher = StockFetcher(ticker=asset, period=period)
-        elif asset_type == "₿ Cryptocurrency" or asset_type == "Cryptocurrency":
-            fetcher = CryptoFetcher(crypto_type=asset, period=period)
+        elif asset_type == "📈 Sector ETF" or asset_type == "Sector ETF":
+            fetcher = SectorETFFetcher(etf_ticker=asset, period=period)
         else:  # Bond (🔒 Bond or Bond)
             fetcher = BondFetcher(bond_type=asset, period=period)
         
