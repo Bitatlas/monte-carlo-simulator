@@ -59,6 +59,9 @@ class BondFetcher(BaseFetcher):
             Historical price or yield data
         """
         self.data = yf.download(self.ticker, period=self.period, auto_adjust=False)
+        # Handle newer yfinance MultiIndex columns (single ticker download)
+        if isinstance(self.data.columns, pd.MultiIndex):
+            self.data.columns = self.data.columns.get_level_values(0)
         return self.data
     
     def calculate_returns(self):
