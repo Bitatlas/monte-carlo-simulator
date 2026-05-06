@@ -437,7 +437,7 @@ st.markdown("""
 logo_base64 = ""
 
 # Create app header with improved title and branding
-st.markdown('<div class="main-header">OptiFolio Simulator</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">Henrique Wealth Academy OptiFolio Simulator</div>', unsafe_allow_html=True)
 st.markdown('<div style="font-size: 1.2rem; margin-bottom: 1rem;">📈 Multi-Asset Monte Carlo Simulator with Advanced Models</div>', unsafe_allow_html=True)
 
 with st.expander("📚 How to Use & Mathematical Background", expanded=False):
@@ -574,13 +574,36 @@ asset_type = st.sidebar.selectbox(
 if asset_type == "📊 Equity Index" or asset_type == "Equity Index":
     asset = st.sidebar.selectbox(
         "Equity Index",
-        options=["SP500", "NASDAQ", "EURO_STOXX50", "STOXX600"],
+        options=[
+            "SP500", "NASDAQ", "DOW_JONES", "RUSSELL2000",
+            "EURO_STOXX50", "STOXX600", "FTSE100", "DAX", "CAC40", "SMI",
+            "NIKKEI225", "HANG_SENG", "ASX200", "KOSPI", "STI",
+            "TSX", "BOVESPA", "MEXICO_IPC",
+            "MSCI_WORLD", "EMERGING", "MSCI_ACWI",
+        ],
         index=0,
         format_func=lambda x: {
-            "SP500": "S&P 500",
-            "NASDAQ": "Nasdaq 100",
-            "EURO_STOXX50": "Euro Stoxx 50",
-            "STOXX600": "STOXX Europe 600"
+            "SP500":        "🇺🇸 S&P 500",
+            "NASDAQ":       "🇺🇸 Nasdaq 100",
+            "DOW_JONES":    "🇺🇸 Dow Jones Industrial Average",
+            "RUSSELL2000":  "🇺🇸 Russell 2000",
+            "EURO_STOXX50": "🇪🇺 Euro Stoxx 50",
+            "STOXX600":     "🇪🇺 STOXX Europe 600",
+            "FTSE100":      "🇬🇧 FTSE 100 (UK)",
+            "DAX":          "🇩🇪 DAX (Germany)",
+            "CAC40":        "🇫🇷 CAC 40 (France)",
+            "SMI":          "🇨🇭 Swiss Market Index",
+            "NIKKEI225":    "🇯🇵 Nikkei 225 (Japan)",
+            "HANG_SENG":    "🇭🇰 Hang Seng (Hong Kong)",
+            "ASX200":       "🇦🇺 ASX 200 (Australia)",
+            "KOSPI":        "🇰🇷 KOSPI (South Korea)",
+            "STI":          "🇸🇬 Straits Times Index (Singapore)",
+            "TSX":          "🇨🇦 S&P/TSX (Canada)",
+            "BOVESPA":      "🇧🇷 Ibovespa (Brazil)",
+            "MEXICO_IPC":   "🇲🇽 IPC (Mexico)",
+            "MSCI_WORLD":   "🌍 MSCI World ETF",
+            "EMERGING":     "🌏 MSCI Emerging Markets ETF",
+            "MSCI_ACWI":    "🌐 MSCI All Country World ETF",
         }.get(x, x),
         help="Select the equity index to simulate"
     )
@@ -1781,9 +1804,25 @@ with tab4:
             if atype == "📊 Equity Index":
                 asset = st.selectbox(
                     "Index",
-                    options=["SP500", "NASDAQ", "EURO_STOXX50", "STOXX600"],
-                    format_func=lambda x: {"SP500":"S&P 500","NASDAQ":"Nasdaq 100",
-                                           "EURO_STOXX50":"Euro Stoxx 50","STOXX600":"STOXX Europe 600"}.get(x, x),
+                    options=[
+                        "SP500","NASDAQ","DOW_JONES","RUSSELL2000",
+                        "EURO_STOXX50","STOXX600","FTSE100","DAX","CAC40","SMI",
+                        "NIKKEI225","HANG_SENG","ASX200","KOSPI","STI",
+                        "TSX","BOVESPA","MEXICO_IPC",
+                        "MSCI_WORLD","EMERGING","MSCI_ACWI",
+                    ],
+                    format_func=lambda x: {
+                        "SP500":"🇺🇸 S&P 500","NASDAQ":"🇺🇸 Nasdaq 100",
+                        "DOW_JONES":"🇺🇸 Dow Jones","RUSSELL2000":"🇺🇸 Russell 2000",
+                        "EURO_STOXX50":"🇪🇺 Euro Stoxx 50","STOXX600":"🇪🇺 STOXX Europe 600",
+                        "FTSE100":"🇬🇧 FTSE 100","DAX":"🇩🇪 DAX",
+                        "CAC40":"🇫🇷 CAC 40","SMI":"🇨🇭 Swiss SMI",
+                        "NIKKEI225":"🇯🇵 Nikkei 225","HANG_SENG":"🇭🇰 Hang Seng",
+                        "ASX200":"🇦🇺 ASX 200","KOSPI":"🇰🇷 KOSPI","STI":"🇸🇬 Straits Times",
+                        "TSX":"🇨🇦 S&P/TSX","BOVESPA":"🇧🇷 Ibovespa","MEXICO_IPC":"🇲🇽 IPC Mexico",
+                        "MSCI_WORLD":"🌍 MSCI World ETF","EMERGING":"🌏 Emerging Markets ETF",
+                        "MSCI_ACWI":"🌐 MSCI All Country World ETF",
+                    }.get(x, x),
                     key=f"{prefix}_asset"
                 )
             elif atype == "🏢 Individual Stock":
@@ -1997,56 +2036,86 @@ with tab4:
 
                     import plotly.graph_objects as go_kelly_pf
 
+                    # Compute individual Kelly values
                     pf_kelly_cols = st.columns(n_pf_assets + 1)
+                    individual_fks = []
+                    _r_daily = 0.02 / 252  # daily risk-free rate
                     for i in range(n_pf_assets):
                         asset_rets_i = model.aligned_returns.iloc[:, i]
-                        kc_i = KellyCalculator(asset_rets_i, risk_free_rate=0.02)
-                        fk_i = kc_i.calculate_full_kelly()
+                        # Analytical Kelly: f* = max(0, (μ - r_daily) / σ²)
+                        _mu_i = float(asset_rets_i.mean())
+                        _var_i = float(asset_rets_i.var())
+                        fk_i = max(0.0, (_mu_i - _r_daily) / _var_i) if _var_i > 0 else 0.0
+                        individual_fks.append(fk_i)
                         pf_kelly_cols[i].metric(
                             f"Kelly: {pf_result['asset_names'][i]}",
                             f"{fk_i:.2f}×",
-                            help=f"Full Kelly leverage for {pf_result['asset_names'][i]} in isolation"
+                            help=(f"Analytical Full Kelly for {pf_result['asset_names'][i]} in isolation. "
+                                  f"Formula: (μ - r) / σ²  where μ={_mu_i*252*100:.1f}% annual, "
+                                  f"σ={np.sqrt(_var_i*252)*100:.1f}% annual")
                         )
 
-                    # Blended portfolio return series
+                    # Blended portfolio return series & analytical Kelly
                     pf_blend = model.aligned_returns @ np.array(pf_result['weights'])
-                    pf_kc = KellyCalculator(pf_blend, risk_free_rate=0.02)
-                    pf_fk  = pf_kc.calculate_full_kelly()
-                    pf_opt = pf_kc.find_optimal_leverage_numerical(max_leverage=5.0)
+                    _mu_pf   = float(pf_blend.mean())
+                    _var_pf  = float(pf_blend.var())
+                    pf_fk    = max(0.0, (_mu_pf - _r_daily) / _var_pf) if _var_pf > 0 else 0.0
                     pf_kelly_cols[-1].metric(
                         "Portfolio Kelly (blended)",
                         f"{pf_fk:.2f}×",
-                        help="Full Kelly for the weighted-average portfolio return series"
+                        help=(f"Analytical Full Kelly for the weighted-average portfolio. "
+                              f"μ={_mu_pf*252*100:.1f}% annual, σ={np.sqrt(_var_pf*252)*100:.1f}% annual. "
+                              f"Diversification reduces portfolio variance, which can boost Kelly above "
+                              f"any individual asset's Kelly.")
                     )
 
-                    lev_arr, gr_arr = pf_kc.generate_leverage_curve(max_leverage=5.0, points=120)
+                    # Diversification bonus explanation
+                    max_ind_fk = max(individual_fks) if individual_fks else 0.0
+                    if pf_fk > max_ind_fk + 0.1:
+                        st.info(
+                            f"ℹ️ **Diversification Bonus detected** — Portfolio Kelly ({pf_fk:.2f}×) exceeds "
+                            f"the highest individual Kelly ({max_ind_fk:.2f}×). This is mathematically valid: "
+                            f"when assets are negatively or lowly correlated, combining them **reduces portfolio "
+                            f"variance more than it reduces expected return**, boosting the Kelly ratio. "
+                            f"This is the mathematical expression of Modern Portfolio Theory's diversification benefit."
+                        )
+
+                    # Kelly growth curve — set x-range to show the full peak and decline
+                    chart_max_lev = max(8.0, pf_fk * 2.5)
+                    _lev_arr = np.linspace(0, chart_max_lev, 200)
+                    # Expected log growth: E[log(1 + f*r)] ≈ f*μ - 0.5*f²*σ²
+                    _gr_arr  = _lev_arr * _mu_pf - 0.5 * _lev_arr**2 * _var_pf
+
                     fig_pf_kelly = go_kelly_pf.Figure()
                     fig_pf_kelly.add_trace(go_kelly_pf.Scatter(
-                        x=lev_arr, y=gr_arr,
+                        x=_lev_arr, y=_gr_arr,
                         mode='lines', line=dict(color='#1E88E5', width=2.5),
-                        name='Log Growth Rate'
+                        name='Expected Log Growth Rate'
                     ))
+                    # Add zero-growth reference line
+                    fig_pf_kelly.add_hline(y=0, line_dash='dot', line_color='gray',
+                                           annotation_text="Break-even", annotation_position="right")
                     fig_pf_kelly.add_vline(
                         x=pf_fk, line_dash='dash', line_color='#FF7043',
                         annotation_text=f"Full Kelly: {pf_fk:.2f}×",
                         annotation_position="top right"
                     )
-                    if abs(pf_opt - pf_fk) > 0.05:
-                        fig_pf_kelly.add_vline(
-                            x=pf_opt, line_dash='dot', line_color='#26A69A',
-                            annotation_text=f"Numerical Opt: {pf_opt:.2f}×",
-                            annotation_position="top left"
-                        )
+                    fig_pf_kelly.add_vline(
+                        x=pf_fk / 2, line_dash='dot', line_color='#26A69A',
+                        annotation_text=f"Half Kelly: {pf_fk/2:.2f}×",
+                        annotation_position="top left"
+                    )
                     fig_pf_kelly.update_layout(
-                        title="Portfolio Kelly Growth Curve",
+                        title="Portfolio Kelly Growth Curve (parabolic — peaks at Full Kelly, falls to zero at 2× Kelly)",
                         xaxis_title="Leverage (×)", yaxis_title="Expected Log Growth Rate",
-                        template="plotly_dark", height=380,
-                        margin=dict(l=40, r=20, t=50, b=40)
+                        template="plotly_dark", height=400,
+                        margin=dict(l=40, r=20, t=60, b=40)
                     )
                     st.plotly_chart(fig_pf_kelly, use_container_width=True)
                     st.caption(
-                        "💡 **Half Kelly** (½ the optimal leverage) gives ~75% of maximum long-term "
-                        "growth with substantially lower drawdowns and volatility."
+                        f"💡 **Full Kelly** ({pf_fk:.2f}×) maximises long-term growth. "
+                        f"**Half Kelly** ({pf_fk/2:.2f}×) gives ~75% of max growth with far lower drawdowns. "
+                        f"Beyond **2× Kelly** ({pf_fk*2:.2f}×) expected growth turns negative — you destroy wealth."
                     )
 
             except Exception as e:

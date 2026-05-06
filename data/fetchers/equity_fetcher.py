@@ -28,10 +28,32 @@ class EquityIndexFetcher(BaseFetcher):
         
         # Define index tickers and names
         self.index_map = {
-            "SP500": {"ticker": "^GSPC", "name": "S&P 500"},
-            "NASDAQ": {"ticker": "^NDX", "name": "Nasdaq 100"},
-            "EURO_STOXX50": {"ticker": "^STOXX50E", "name": "Euro Stoxx 50"},
-            "STOXX600": {"ticker": "^STOXX", "name": "STOXX Europe 600"},
+            # ── United States ──────────────────────────────────────────────
+            "SP500":        {"ticker": "^GSPC",    "name": "S&P 500"},
+            "NASDAQ":       {"ticker": "^NDX",     "name": "Nasdaq 100"},
+            "DOW_JONES":    {"ticker": "^DJI",     "name": "Dow Jones Industrial Average"},
+            "RUSSELL2000":  {"ticker": "^RUT",     "name": "Russell 2000"},
+            # ── Europe ─────────────────────────────────────────────────────
+            "EURO_STOXX50": {"ticker": "^STOXX50E","name": "Euro Stoxx 50"},
+            "STOXX600":     {"ticker": "^STOXX",   "name": "STOXX Europe 600"},
+            "FTSE100":      {"ticker": "^FTSE",    "name": "FTSE 100 (UK)"},
+            "DAX":          {"ticker": "^GDAXI",   "name": "DAX (Germany)"},
+            "CAC40":        {"ticker": "^FCHI",    "name": "CAC 40 (France)"},
+            "SMI":          {"ticker": "^SSMI",    "name": "Swiss Market Index"},
+            # ── Asia-Pacific ───────────────────────────────────────────────
+            "NIKKEI225":    {"ticker": "^N225",    "name": "Nikkei 225 (Japan)"},
+            "HANG_SENG":    {"ticker": "^HSI",     "name": "Hang Seng (Hong Kong)"},
+            "ASX200":       {"ticker": "^AXJO",    "name": "ASX 200 (Australia)"},
+            "KOSPI":        {"ticker": "^KS11",    "name": "KOSPI (South Korea)"},
+            "STI":          {"ticker": "^STI",     "name": "Straits Times Index (Singapore)"},
+            # ── Americas ───────────────────────────────────────────────────
+            "TSX":          {"ticker": "^GSPTSE",  "name": "S&P/TSX (Canada)"},
+            "BOVESPA":      {"ticker": "^BVSP",    "name": "Ibovespa (Brazil)"},
+            "MEXICO_IPC":   {"ticker": "^MXX",     "name": "IPC (Mexico)"},
+            # ── Global/Emerging ────────────────────────────────────────────
+            "MSCI_WORLD":   {"ticker": "URTH",     "name": "MSCI World ETF"},
+            "EMERGING":     {"ticker": "EEM",      "name": "MSCI Emerging Markets ETF"},
+            "MSCI_ACWI":    {"ticker": "ACWI",     "name": "MSCI All Country World ETF"},
         }
         
         # Set ticker and name based on selected index
