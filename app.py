@@ -906,10 +906,10 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📊 Dashboard", 
     "🔬 Simulation Details", 
     "📈 Kelly Analysis", 
+    "🗂️ Portfolio Simulator",
     "🛠️ Use Cases", 
     "ℹ️ About Models", 
-    "🎮 Kelly Game",
-    "🗂️ Portfolio Simulator"
+    "🎮 Kelly Game"
 ])
 
 # Add even stronger CSS to make tab text bold
@@ -1588,7 +1588,7 @@ if st.button("Run Simulation"):
                     """, unsafe_allow_html=True)
                 
 # Use Cases tab content
-with tab4:
+with tab5:
     # Load and display the use cases markdown file with path handling for different environments
     try:
         # Try direct path first (for deployed environments)
@@ -1608,7 +1608,7 @@ with tab4:
     st.markdown(use_cases_content)
 
 # About Models tab content
-with tab5:
+with tab6:
     st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
     
     # Create expanders for each model
@@ -1730,7 +1730,7 @@ if "result" not in locals():
     st.info("Adjust the parameters in the sidebar and click 'Run Simulation' to start.")
     
     # Show explanation in the About Models tab
-    with tab5:
+    with tab6:
         st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
         
         st.markdown("""
@@ -1747,7 +1747,7 @@ if "result" not in locals():
         """)
 
 # Kelly Game tab content
-with tab6:
+with tab7:
     # Create two columns for better organization: game controls on left, game display on right
     game_col1, game_col2 = st.columns([1, 3])
     
@@ -1760,9 +1760,9 @@ with tab6:
         kelly_game_tab()
 
 # ─────────────────────────────────────────────────────────────
-# Portfolio Simulator tab (tab7)
+# Portfolio Simulator tab (tab4)
 # ─────────────────────────────────────────────────────────────
-with tab7:
+with tab4:
     st.markdown('<div class="sub-header">🗂️ Portfolio Simulator</div>', unsafe_allow_html=True)
     st.markdown("Build a multi-asset portfolio (up to 3 assets), simulate it with correlated returns, "
                 "optional rebalancing, and Dollar-Cost Averaging.")
@@ -1986,6 +1986,68 @@ with tab7:
                         columns=pf_result['asset_names']
                     ).round(3)
                     st.dataframe(corr_df.style.background_gradient(cmap='RdYlGn', vmin=-1, vmax=1))
+
+                    # ── Portfolio Kelly Analysis ──────────────────────────────────
+                    st.markdown("---")
+                    st.markdown("#### 📈 Portfolio Kelly Analysis")
+                    st.caption(
+                        "Kelly Criterion applied to each asset individually and to the blended portfolio "
+                        "return series (weighted by your target allocations)."
+                    )
+
+                    import plotly.graph_objects as go_kelly_pf
+
+                    pf_kelly_cols = st.columns(n_pf_assets + 1)
+                    for i in range(n_pf_assets):
+                        asset_rets_i = model.aligned_returns.iloc[:, i]
+                        kc_i = KellyCalculator(asset_rets_i, risk_free_rate=0.02)
+                        fk_i = kc_i.calculate_full_kelly()
+                        pf_kelly_cols[i].metric(
+                            f"Kelly: {pf_result['asset_names'][i]}",
+                            f"{fk_i:.2f}×",
+                            help=f"Full Kelly leverage for {pf_result['asset_names'][i]} in isolation"
+                        )
+
+                    # Blended portfolio return series
+                    pf_blend = model.aligned_returns @ np.array(pf_result['weights'])
+                    pf_kc = KellyCalculator(pf_blend, risk_free_rate=0.02)
+                    pf_fk  = pf_kc.calculate_full_kelly()
+                    pf_opt = pf_kc.find_optimal_leverage_numerical(max_leverage=5.0)
+                    pf_kelly_cols[-1].metric(
+                        "Portfolio Kelly (blended)",
+                        f"{pf_fk:.2f}×",
+                        help="Full Kelly for the weighted-average portfolio return series"
+                    )
+
+                    lev_arr, gr_arr = pf_kc.generate_leverage_curve(max_leverage=5.0, points=120)
+                    fig_pf_kelly = go_kelly_pf.Figure()
+                    fig_pf_kelly.add_trace(go_kelly_pf.Scatter(
+                        x=lev_arr, y=gr_arr,
+                        mode='lines', line=dict(color='#1E88E5', width=2.5),
+                        name='Log Growth Rate'
+                    ))
+                    fig_pf_kelly.add_vline(
+                        x=pf_fk, line_dash='dash', line_color='#FF7043',
+                        annotation_text=f"Full Kelly: {pf_fk:.2f}×",
+                        annotation_position="top right"
+                    )
+                    if abs(pf_opt - pf_fk) > 0.05:
+                        fig_pf_kelly.add_vline(
+                            x=pf_opt, line_dash='dot', line_color='#26A69A',
+                            annotation_text=f"Numerical Opt: {pf_opt:.2f}×",
+                            annotation_position="top left"
+                        )
+                    fig_pf_kelly.update_layout(
+                        title="Portfolio Kelly Growth Curve",
+                        xaxis_title="Leverage (×)", yaxis_title="Expected Log Growth Rate",
+                        template="plotly_dark", height=380,
+                        margin=dict(l=40, r=20, t=50, b=40)
+                    )
+                    st.plotly_chart(fig_pf_kelly, use_container_width=True)
+                    st.caption(
+                        "💡 **Half Kelly** (½ the optimal leverage) gives ~75% of maximum long-term "
+                        "growth with substantially lower drawdowns and volatility."
+                    )
 
             except Exception as e:
                 st.error(f"Portfolio simulation error: {e}")
