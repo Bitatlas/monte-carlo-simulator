@@ -14,6 +14,7 @@ from data.fetchers import (
     SectorETFFetcher
 )
 from kelly_game import kelly_game_tab
+from portfolio_optimizer import portfolio_optimizer_tab
 from models import (
     MonteCarloModel,
     PortfolioMonteCarloModel,
@@ -925,14 +926,15 @@ elif model_type == "Feynman Path Integral":
     )
 
 # Initialize tabs (using CSS to make them bold rather than HTML tags)
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "📊 Dashboard", 
     "🔬 Simulation Details", 
     "📈 Kelly Analysis", 
     "🗂️ Portfolio Simulator",
     "🛠️ Use Cases", 
     "ℹ️ About Models", 
-    "🎮 Kelly Game"
+    "🎮 Kelly Game",
+    "🔍 Portfolio Optimizer",
 ])
 
 # Add even stronger CSS to make tab text bold
@@ -2120,6 +2122,10 @@ with tab4:
 
             except Exception as e:
                 st.error(f"Portfolio simulation error: {e}")
+
+# Portfolio Optimizer tab
+with tab8:
+    portfolio_optimizer_tab()
 
 # About the Author Section
 st.markdown("---")
