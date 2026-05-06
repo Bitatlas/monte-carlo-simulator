@@ -164,15 +164,21 @@ def evaluate_portfolio_combination(
         w_sum = float(len(asset_subset))
     normalized_weights = w_pos / w_sum
 
-    # ── Individual analytical Kelly (long-only) ─────────────────────────────
+    # ── Individual K* (same quadratic-form units as Portfolio K*) ─────────────
+    # K*ᵢ = (μᵢ − r)² / σᵢ²  (Nekrasov single-asset case, Σ⁻¹ reduces to 1/σ²)
+    # Annualised × 252 so values are O(0.1–2.0) rather than O(0.001)
     individual_kellys: Dict[str, float] = {}
     for i, ticker in enumerate(asset_subset):
         var_i = float(subset_returns[ticker].var())
-        individual_kellys[ticker] = max(0.0, mu_excess[i] / var_i) if var_i > 0 else 0.0
+        k_star_i = (mu_excess[i] ** 2) / var_i if var_i > 0 else 0.0
+        individual_kellys[ticker] = round(max(0.0, k_star_i) * 252, 4)
     max_individual_kelly = max(individual_kellys.values(), default=0.0)
 
-    # ── Diversification bonus ───────────────────────────────────────────────
-    div_bonus = portfolio_kelly - max_individual_kelly
+    # Annualise Portfolio K* to same scale
+    portfolio_kelly_ann = max(0.0, portfolio_kelly) * 252
+
+    # ── Diversification bonus (annualised K* units) ─────────────────────────
+    div_bonus = portfolio_kelly_ann - max_individual_kelly
 
     # ── Annualised Sharpe for the normalised-weight portfolio ───────────────
     mu_ann    = (subset_returns.mean().values @ normalized_weights) * 252
@@ -192,7 +198,7 @@ def evaluate_portfolio_combination(
 
     return {
         "assets":                tuple(asset_subset),
-        "portfolio_kelly":       round(portfolio_kelly, 4),
+        "portfolio_kelly":       round(portfolio_kelly_ann, 4),
         "max_individual_kelly":  round(max_individual_kelly, 4),
         "diversification_bonus": round(div_bonus, 4),
         "sharpe_ratio":          round(sharpe, 4),
@@ -434,16 +440,19 @@ def portfolio_optimizer_tab() -> None:
     with s4c2:
         max_corr_filter = st.slider(
             "Max avg pairwise correlation threshold",
-            min_value=-1.0, max_value=1.0, value=0.7, step=0.05,
+            min_value=-1.0, max_value=1.0, value=1.0, step=0.05,
             key="po_max_corr",
-            help="Only keep portfolios with avg pairwise correlation ≤ this value",
+            help="Only keep portfolios with avg pairwise correlation ≤ this value. "
+                 "Start at 1.0 (no filter) and lower to focus on well-diversified combos.",
         )
     with s4c3:
         min_div_bonus = st.slider(
-            "Min diversification bonus",
-            min_value=-5.0, max_value=10.0, value=0.0, step=0.1,
+            "Min diversification bonus (annualised K*)",
+            min_value=-5.0, max_value=10.0, value=-5.0, step=0.1,
             key="po_min_div",
-            help="Only keep portfolios where Portfolio Kelly > Individual Kelly by this margin",
+            help="Diversification Bonus = Portfolio K* − Max Individual K* (annualised). "
+                 "Positive means the portfolio beats the best single-asset Kelly. "
+                 "Default -5 shows all portfolios; raise to filter for true diversification winners.",
         )
 
     optimization_metric = st.selectbox(
@@ -517,9 +526,10 @@ def portfolio_optimizer_tab() -> None:
             return
 
         results_sorted = sorted(results, key=lambda x: x[sort_key], reverse=True)
-        st.session_state["po_results"]  = results_sorted
-        st.session_state["po_metric"]   = optimization_metric
-        st.session_state["po_top_n"]    = top_n
+        # Use distinct keys (_saved) to avoid collision with widget keys po_metric / po_top_n
+        st.session_state["po_results"]       = results_sorted
+        st.session_state["po_metric_saved"]  = optimization_metric
+        st.session_state["po_top_n_saved"]   = top_n
 
         st.success(f"✅ Found **{len(results_sorted):,}** qualifying portfolios — showing top {top_n}!")
 
@@ -528,7 +538,7 @@ def portfolio_optimizer_tab() -> None:
         return
 
     results_sorted: List[Dict]  = st.session_state["po_results"]
-    display_n                   = st.session_state.get("po_top_n", top_n)
+    display_n                   = st.session_state.get("po_top_n_saved", top_n)
     top_results                 = results_sorted[:display_n]
 
     st.markdown("---")
@@ -665,4 +675,7 @@ def portfolio_optimizer_tab() -> None:
         mime="text/csv",
         key="po_export",
     )
-    st.caption(f"Exporting top {min(200, len(results_sorted))} portfolios out of {len(results_sorted):,} qualifying results.")
+    st.caption(
+        f"Exporting top {min(200, len(results_sorted))} portfolios out of {len(results_sorted):,} qualifying results. "
+        f"Kelly values are annualised K* = μᵀ Σ⁻¹ μ × 252 (same scale for individual and portfolio)."
+    )
