@@ -192,9 +192,9 @@ def evaluate_portfolio_combination(
     n = len(asset_subset)
     avg_correlation = (corr_matrix.sum() - n) / (n * (n - 1)) if n > 1 else 0.0
 
-    # ── Composite metrics ───────────────────────────────────────────────────
-    kelly_sharpe_product  = portfolio_kelly * sharpe
-    risk_adjusted_kelly   = portfolio_kelly / (1.0 + vol_ann) if vol_ann >= 0 else 0.0
+    # ── Composite metrics (use annualised K* so numbers are meaningful) ──────
+    kelly_sharpe_product  = portfolio_kelly_ann * sharpe
+    risk_adjusted_kelly   = portfolio_kelly_ann / (1.0 + vol_ann) if vol_ann >= 0 else 0.0
 
     return {
         "assets":                tuple(asset_subset),
@@ -639,13 +639,33 @@ def portfolio_optimizer_tab() -> None:
             dc5.metric("Volatility",      f"{res['volatility']*100:.1f}%")
 
             # Individual Kellys
-            st.markdown("**Individual Kelly Ratios:**")
-            ik_df = pd.DataFrame([
-                {"Asset": k, "Kelly (individual)": f"{v:.2f}×",
-                 "Normalised Weight": f"{res['normalized_weights'][j]*100:.1f}%"}
-                for j, (k, v) in enumerate(res["individual_kellys"].items())
-            ])
+            st.markdown("**Individual Kelly Ratios (long-only normalised weights):**")
+            raw_kw = res.get("kelly_weights", [])
+            ik_rows = []
+            for j, (k, v) in enumerate(res["individual_kellys"].items()):
+                w_pct = res["normalized_weights"][j] * 100
+                raw_w = raw_kw[j] if j < len(raw_kw) else 0.0
+                note = ""
+                if raw_w < 0:
+                    note = "⚠️ Model suggests short; set to 0 in long-only mode"
+                elif w_pct < 0.1:
+                    note = "Near-zero contribution"
+                ik_rows.append({
+                    "Asset": k,
+                    "Kelly K* (individual)": f"{v:.2f}",
+                    "Unconstrained Weight": f"{raw_w:.2f}×",
+                    "Long-Only Weight": f"{w_pct:.1f}%",
+                    "Note": note,
+                })
+            ik_df = pd.DataFrame(ik_rows)
             st.dataframe(ik_df, hide_index=True, use_container_width=True)
+            if any(r.get("kelly_weights", [i])[i] < 0 for i, r in [(j, res)] for j in range(len(res["assets"]))):
+                st.caption(
+                    "⚠️ **Short position detected**: the Nekrasov unconstrained formula says to short "
+                    "one or more assets (negative weight). In long-only mode these are set to 0%. "
+                    "The Portfolio Kelly metric still reflects the full unconstrained opportunity — "
+                    "if you can short, the benefit is real."
+                )
 
             # Kelly-weights bar chart
             asset_names = list(res["assets"])
