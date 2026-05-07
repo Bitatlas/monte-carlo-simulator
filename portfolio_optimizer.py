@@ -117,12 +117,16 @@ def evaluate_portfolio_combination(
     asset_subset: List[str],
     returns_df: pd.DataFrame,
     risk_free_rate: float = 0.02,
+    long_only: bool = False,
 ) -> Dict[str, Any] | None:
     """
     Evaluate a portfolio using Kelly + MPT metrics.
 
     Nekrasov unconstrained Kelly weights: w* = Σ⁻¹μ
     Portfolio Kelly leverage:             K* = μᵀ Σ⁻¹ μ
+
+    When long_only=True, K* is computed for the long-only projected weights
+    (no short positions allowed).
 
     Returns None if the covariance matrix is degenerate or data insufficient.
     """
@@ -174,8 +178,18 @@ def evaluate_portfolio_combination(
         individual_kellys[ticker] = round(max(0.0, k_star_i) * 252, 4)
     max_individual_kelly = max(individual_kellys.values(), default=0.0)
 
-    # Annualise Portfolio K* to same scale
-    portfolio_kelly_ann = max(0.0, portfolio_kelly) * 252
+    # ── Portfolio K* — unconstrained or long-only ───────────────────────────
+    if long_only:
+        # Long-only K*: same formula but applied to the projected positive weights
+        # K*(w_lo) = (w_lo·μ_excess)² / (w_lo·Σ·w_lo)  × 252
+        blend_mu  = float(normalized_weights @ mu_excess)
+        blend_var = float(normalized_weights @ sigma @ normalized_weights)
+        if blend_var > 1e-12 and blend_mu > 0:
+            portfolio_kelly_ann = (blend_mu ** 2) / blend_var * 252
+        else:
+            portfolio_kelly_ann = 0.0
+    else:
+        portfolio_kelly_ann = max(0.0, portfolio_kelly) * 252
 
     # ── Diversification bonus (annualised K* units) ─────────────────────────
     div_bonus = portfolio_kelly_ann - max_individual_kelly
@@ -455,19 +469,40 @@ def portfolio_optimizer_tab() -> None:
                  "Default -5 shows all portfolios; raise to filter for true diversification winners.",
         )
 
-    optimization_metric = st.selectbox(
+    METRIC_LABELS = {
+        "Diversification Bonus — Portfolio K* minus best individual K* (higher = more synergy from combining)":
+            "diversification_bonus",
+        "Portfolio Kelly (K*) — total annualised growth rate at optimal leverage (higher = more compounding power)":
+            "portfolio_kelly",
+        "Sharpe Ratio — return per unit of risk; best single measure of risk-adjusted performance":
+            "sharpe_ratio",
+        "Kelly × Sharpe — combines Kelly growth power with risk-adjusted return; rewards both levers":
+            "kelly_sharpe_product",
+        "Risk-Adjusted Kelly — Portfolio K* discounted by volatility; penalises high-risk combos":
+            "risk_adjusted_kelly",
+    }
+    optimization_metric_label = st.selectbox(
         "Rank portfolios by:",
-        options=[
-            "Diversification Bonus",
-            "Portfolio Kelly Leverage",
-            "Sharpe Ratio",
-            "Kelly-Sharpe Product",
-            "Risk-Adjusted Kelly",
-        ],
+        options=list(METRIC_LABELS.keys()),
         key="po_metric",
     )
+    optimization_metric = optimization_metric_label.split(" — ")[0]   # short name for display
+    sort_key_name = METRIC_LABELS[optimization_metric_label]
 
     top_n = st.slider("Number of top portfolios to display", 5, 50, 10, key="po_top_n")
+
+    long_only_mode = st.toggle(
+        "🔒 Long-Only Mode",
+        value=True,
+        key="po_long_only",
+        help=(
+            "When ON (default): Kelly weights are forced to be ≥ 0. "
+            "No short positions are allowed. Portfolio K* is recomputed for the "
+            "long-only projected weights — you only see realistic allocations. "
+            "When OFF: full Nekrasov unconstrained mode — some assets may have "
+            "negative weights (short positions). Useful if you can use leverage/shorting."
+        ),
+    )
 
     # Combination count warning
     n_tickers  = len(valid_tickers)
@@ -484,14 +519,7 @@ def portfolio_optimizer_tab() -> None:
 
     if st.button("🔍 Search All Combinations", type="primary", key="po_search",
                  disabled=(n_combos > 100_000)):
-        metric_key_map = {
-            "Diversification Bonus":   "diversification_bonus",
-            "Portfolio Kelly Leverage": "portfolio_kelly",
-            "Sharpe Ratio":            "sharpe_ratio",
-            "Kelly-Sharpe Product":    "kelly_sharpe_product",
-            "Risk-Adjusted Kelly":     "risk_adjusted_kelly",
-        }
-        sort_key = metric_key_map[optimization_metric]
+        sort_key = sort_key_name
 
         all_combos = list(itertools.combinations(valid_tickers, int(combo_size)))
         results: List[Dict] = []
@@ -511,7 +539,8 @@ def portfolio_optimizer_tab() -> None:
                 progress_bar.progress(pct)
                 status_text.text(f"Testing combination {idx:,} / {n_combos:,}…")
 
-            res = evaluate_portfolio_combination(list(combo), returns_df, rf_rate)
+            res = evaluate_portfolio_combination(list(combo), returns_df, rf_rate,
+                                                 long_only=long_only_mode)
             if res is None:
                 n_none += 1
                 continue
@@ -607,18 +636,30 @@ def portfolio_optimizer_tab() -> None:
     st.plotly_chart(fig_scatter, use_container_width=True)
 
     # ── Summary table ─────────────────────────────────────────────────────────
+    # Column header tooltips via markdown legend
+    st.markdown("""
+<small>
+**Column guide** &nbsp;|&nbsp;
+**Port. Kelly** = Annualised K\\* (Nekrasov growth rate at optimal leverage) &nbsp;|&nbsp;
+**Div Bonus** = Portfolio K\\* − best individual K\\* (positive = real synergy) &nbsp;|&nbsp;
+**Sharpe** = (Return − Risk-free) ÷ Volatility &nbsp;|&nbsp;
+**Kelly×Sharpe** = Kelly × Sharpe (rewards both growth power and efficiency) &nbsp;|&nbsp;
+**Avg Corr** = average pairwise correlation (lower = more diversification)
+</small>
+""", unsafe_allow_html=True)
+
     summary_rows = []
     for i, res in enumerate(top_results):
         summary_rows.append({
             "Rank":           i + 1,
             "Assets":         " | ".join(res["assets"]),
-            "Port. Kelly":    f"{res['portfolio_kelly']:.2f}×",
-            "Div Bonus":      f"{res['diversification_bonus']:.2f}",
-            "Sharpe":         f"{res['sharpe_ratio']:.2f}",
+            "Port. Kelly ℹ️":  f"{res['portfolio_kelly']:.2f}",
+            "Div Bonus ℹ️":    f"{res['diversification_bonus']:.2f}",
+            "Sharpe ℹ️":       f"{res['sharpe_ratio']:.2f}",
             "Exp. Return":    f"{res['expected_return']*100:.1f}%",
             "Volatility":     f"{res['volatility']*100:.1f}%",
-            "Avg Corr":       f"{res['avg_correlation']:.3f}",
-            "Kelly×Sharpe":   f"{res['kelly_sharpe_product']:.2f}",
+            "Avg Corr ℹ️":     f"{res['avg_correlation']:.3f}",
+            "Kelly×Sharpe ℹ️": f"{res['kelly_sharpe_product']:.2f}",
         })
 
     summary_df = pd.DataFrame(summary_rows)
@@ -630,13 +671,30 @@ def portfolio_optimizer_tab() -> None:
         label = f"#{i+1}  {' + '.join(res['assets'])}  —  Div Bonus: {res['diversification_bonus']:.2f}  |  Sharpe: {res['sharpe_ratio']:.2f}  |  Kelly: {res['portfolio_kelly']:.2f}×"
         with st.expander(label, expanded=(i == 0)):
             dc1, dc2, dc3, dc4, dc5 = st.columns(5)
-            dc1.metric("Portfolio Kelly", f"{res['portfolio_kelly']:.2f}×",
-                       help="Nekrasov K* = μᵀ Σ⁻¹ μ")
-            dc2.metric("Div Bonus",       f"{res['diversification_bonus']:.2f}",
-                       help="Portfolio Kelly − Max Individual Kelly")
-            dc3.metric("Sharpe Ratio",    f"{res['sharpe_ratio']:.2f}")
-            dc4.metric("Exp. Return",     f"{res['expected_return']*100:.1f}%")
-            dc5.metric("Volatility",      f"{res['volatility']*100:.1f}%")
+            dc1.metric("Portfolio Kelly (K*)", f"{res['portfolio_kelly']:.2f}",
+                       help=(
+                           "Nekrasov Portfolio Kelly — annualised K* = μᵀ Σ⁻¹ μ × 252. "
+                           "Measures the maximum achievable compounding growth rate when assets "
+                           "are combined optimally. Higher = more compounding power from this combo. "
+                           "In Long-Only Mode this is the K* for the positive-weight portfolio."
+                       ))
+            dc2.metric("Diversification Bonus", f"{res['diversification_bonus']:.2f}",
+                       help=(
+                           "Portfolio K* − Max Individual K*. "
+                           "Positive means the portfolio BEATS the best single asset in compounding power — "
+                           "this is the mathematical proof that diversification adds value. "
+                           "Zero = no benefit from combining. Negative = assets hurt each other."
+                       ))
+            dc3.metric("Sharpe Ratio", f"{res['sharpe_ratio']:.2f}",
+                       help=(
+                           "Annualised Sharpe = (Portfolio Return − Risk-Free Rate) ÷ Volatility. "
+                           "Measures return per unit of risk. >1.0 = good, >2.0 = excellent. "
+                           "Computed using long-only Kelly weights."
+                       ))
+            dc4.metric("Expected Return (ann.)", f"{res['expected_return']*100:.1f}%",
+                       help="Annualised expected return of the long-only Kelly-weighted portfolio, based on historical data.")
+            dc5.metric("Volatility (ann.)", f"{res['volatility']*100:.1f}%",
+                       help="Annualised standard deviation of the long-only Kelly-weighted portfolio.")
 
             # Individual Kellys
             st.markdown("**Individual Kelly Ratios (long-only normalised weights):**")
