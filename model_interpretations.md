@@ -384,3 +384,57 @@ All models are estimated from **historical data** downloaded via yfinance. Param
 - **Non-stationarity**: financial parameters (especially μ) are unstable over time. A 10-year mean return is not guaranteed to persist.
 
 > **Important:** All models project the *conditional distribution* of future outcomes given past data. They do not predict the future. Wide percentile bands are not a flaw — they are an honest representation of uncertainty.
+
+
+---
+
+## Academic References
+
+The models, metrics, and strategies implemented in this platform are grounded in the following peer-reviewed literature and authoritative texts.
+
+### Monte Carlo Simulation in Finance
+1. **Boyle, P. P.** (1977). "Options: A Monte Carlo approach." *Journal of Financial Economics*, 4(3), 323-338. — First application of Monte Carlo methods to option pricing.
+2. **Glasserman, P.** (2003). *Monte Carlo Methods in Financial Engineering*. Springer, New York. — The definitive reference textbook for Monte Carlo simulation in quantitative finance.
+3. **Metropolis, N., & Ulam, S.** (1949). "The Monte Carlo method." *Journal of the American Statistical Association*, 44(247), 335-341. — Original paper introducing the Monte Carlo method.
+
+### Geometric Brownian Motion & Option Pricing
+4. **Black, F., & Scholes, M.** (1973). "The pricing of options and corporate liabilities." *Journal of Political Economy*, 81(3), 637-654. — Foundational GBM-based option pricing model.
+5. **Merton, R. C.** (1973). "Theory of rational option pricing." *Bell Journal of Economics and Management Science*, 4(1), 141-183. — Extended Black-Scholes to continuous-time GBM.
+6. **Samuelson, P. A.** (1965). "Proof that properly anticipated prices fluctuate randomly." *Industrial Management Review*, 6(2), 41-49. — Mathematical basis for the random-walk / GBM price model.
+
+### GARCH & Volatility Modelling
+7. **Engle, R. F.** (1982). "Autoregressive conditional heteroscedasticity with estimates of the variance of United Kingdom inflation." *Econometrica*, 50(4), 987-1007. — Introduced the ARCH model (Nobel Prize 2003).
+8. **Bollerslev, T.** (1986). "Generalized autoregressive conditional heteroscedasticity." *Journal of Econometrics*, 31(3), 307-327. — Extended ARCH to GARCH(p,q).
+9. **Engle, R. F., & Patton, A. J.** (2001). "What good is a volatility model?" *Quantitative Finance*, 1(2), 237-245. — Practical guide to applying GARCH models.
+
+### Markov Chain & Regime-Switching Models
+10. **Hamilton, J. D.** (1989). "A new approach to the economic analysis of nonstationary time series and the business cycle." *Econometrica*, 57(2), 357-384. — Introduced Markov regime-switching models for financial time series.
+11. **Ang, A., & Bekaert, G.** (2002). "International asset allocation with regime shifts." *Review of Financial Studies*, 15(4), 1137-1187. — Applied regime switching to international portfolio allocation.
+
+### Feynman Path Integral in Finance
+12. **Kleinert, H.** (2004). *Path Integrals in Quantum Mechanics, Statistics, Polymer Physics, and Financial Markets* (4th ed.). World Scientific, Singapore. — Comprehensive treatment of Feynman path integrals, including financial applications.
+13. **Baaquie, B. E.** (2004). *Quantum Finance: Path Integrals and Hamiltonians for Options and Interest Rates*. Cambridge University Press. — Applies quantum field theory and path integrals to financial modelling.
+
+### Kelly Criterion & Optimal Growth
+14. **Kelly, J. L.** (1956). "A new interpretation of information rate." *Bell System Technical Journal*, 35(4), 917-926. — Original paper introducing the Kelly Criterion.
+15. **Thorp, E. O.** (1969). "Optimal gambling systems for favorable games." *Revue de l'Institut International de Statistique*, 37(3), 273-293. — First application of Kelly to financial markets.
+16. **MacLean, L. C., Thorp, E. O., & Ziemba, W. T.** (2011). *The Kelly Capital Growth Investment Criterion: Theory and Practice*. World Scientific. — Comprehensive book on Kelly Criterion applications in investing.
+17. **Nekrasov, V.** (2014). "Kelly criterion for multivariate portfolios: A model-free approach." Available at SSRN: https://ssrn.com/abstract=2259133. — Foundation for Portfolio Kelly / Diversification Bonus calculations used in this platform.
+
+### Modern Portfolio Theory & Diversification
+18. **Markowitz, H.** (1952). "Portfolio selection." *Journal of Finance*, 7(1), 77-91. — Seminal work on mean-variance optimization (Nobel Prize 1990).
+19. **Sharpe, W. F.** (1966). "Mutual fund performance." *Journal of Business*, 39(1), 119-138. — Introduced the Sharpe ratio.
+20. **Fernholz, R., & Shay, B.** (1982). "Stochastic portfolio theory and stock market equilibrium." *Journal of Finance*, 37(2), 615-624. — Mathematical basis for the rebalancing bonus.
+21. **Booth, D. G., & Fama, E. F.** (1992). "Diversification returns and asset contributions." *Financial Analysts Journal*, 48(3), 26-32. — Empirical evidence for the diversification / rebalancing bonus.
+
+### Volatility Drag & Leverage
+22. **Mindlin, D.** (2011). "On the relationship between arithmetic and geometric returns." *CDI Advisors Research*. — Formal treatment of variance drag: G ~ mu - (1/2)*sigma^2.
+23. **Cheng, M., & Madhavan, A.** (2009). "The dynamics of leveraged and inverse exchange-traded funds." *Journal of Investment Management*, 7(4), 43-62. — Analysis of volatility drag in leveraged ETFs.
+
+### Stochastic Calculus Reference
+24. **Oksendal, B.** (2003). *Stochastic Differential Equations: An Introduction with Applications* (6th ed.). Springer. — Standard reference for GBM and Ito calculus.
+25. **Hull, J. C.** (2022). *Options, Futures, and Other Derivatives* (11th ed.). Pearson. — Industry-standard textbook covering GBM, Black-Scholes, and Monte Carlo in finance.
+
+---
+
+*This platform is built for educational purposes. Citations are provided to support further academic study.*
