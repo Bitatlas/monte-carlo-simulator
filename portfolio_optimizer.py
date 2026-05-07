@@ -160,10 +160,18 @@ def evaluate_portfolio_combination(
         return None
 
     # ── Normalised (long-only) weights for Sharpe / display ────────────────
-    w_pos = np.maximum(kelly_weights_raw, 0.0)
+    if long_only:
+        # In Long-Only Mode: if ANY asset has a non-positive unconstrained weight,
+        # skip this combo — the user wants all N assets to have positive weight
+        if np.any(kelly_weights_raw <= 0):
+            return None
+        w_pos = kelly_weights_raw.copy()
+    else:
+        w_pos = np.maximum(kelly_weights_raw, 0.0)
+
     w_sum = w_pos.sum()
     if w_sum < 1e-10:
-        # Fall back to equal weight if all weights are ≤ 0
+        # Fall back to equal weight if all weights are ≤ 0 (unconstrained mode only)
         w_pos = np.ones(len(asset_subset))
         w_sum = float(len(asset_subset))
     normalized_weights = w_pos / w_sum
@@ -636,17 +644,18 @@ def portfolio_optimizer_tab() -> None:
     st.plotly_chart(fig_scatter, use_container_width=True)
 
     # ── Summary table ─────────────────────────────────────────────────────────
-    # Column header tooltips via markdown legend
-    st.markdown("""
-<small>
-**Column guide** &nbsp;|&nbsp;
-**Port. Kelly** = Annualised K\\* (Nekrasov growth rate at optimal leverage) &nbsp;|&nbsp;
-**Div Bonus** = Portfolio K\\* − best individual K\\* (positive = real synergy) &nbsp;|&nbsp;
-**Sharpe** = (Return − Risk-free) ÷ Volatility &nbsp;|&nbsp;
-**Kelly×Sharpe** = Kelly × Sharpe (rewards both growth power and efficiency) &nbsp;|&nbsp;
-**Avg Corr** = average pairwise correlation (lower = more diversification)
-</small>
-""", unsafe_allow_html=True)
+    with st.expander("ℹ️ Column Guide — what each metric means", expanded=False):
+        st.markdown("""
+| Column | What it measures | Good value |
+|---|---|---|
+| **Port. Kelly** | Annualised K* — max compounding growth rate at optimal leverage | Higher is better |
+| **Div Bonus** | Portfolio K* minus best single-asset K* — measures how much combining helps | > 0 (positive = true synergy) |
+| **Sharpe** | Risk-adjusted return = (Return − Risk-free) ÷ Volatility | > 1.0 good, > 2.0 excellent |
+| **Exp. Return** | Annualised expected return of the Kelly-weighted portfolio | Higher is better |
+| **Volatility** | Annualised standard deviation of the portfolio | Lower = smoother ride |
+| **Avg Corr** | Average pairwise correlation between assets | Closer to −1 = max diversification |
+| **Kelly×Sharpe** | Portfolio K* × Sharpe — rewards both growth power and risk efficiency | Higher is better |
+""")
 
     summary_rows = []
     for i, res in enumerate(top_results):
