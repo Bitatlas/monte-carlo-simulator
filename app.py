@@ -51,7 +51,7 @@ st.set_page_config(
     page_title="Multi-Asset Monte Carlo Simulator",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Enhanced Modern Theme Custom CSS with Dark Mode Support
@@ -372,7 +372,7 @@ st.markdown("""
     /* Fix the Kelly Game layout specifically */
     
     /* 1. Make the horizontal layout more compact - reduce gap between columns */
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="stHorizontalBlock"] {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="stHorizontalBlock"] {
         gap: 0 !important;
         column-gap: 0 !important;
         padding: 0 !important;
@@ -380,36 +380,36 @@ st.markdown("""
     }
     
     /* 2. Remove left padding from content column to move text closer to controls */
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:nth-child(2) {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:nth-child(2) {
         padding-left: 0 !important;
         margin-left: -70px !important; /* Even larger negative margin to pull content much closer to left panel */
     }
     
     /* 3. Compact the left panel's internal elements - controls */
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:first-child {
         padding: 0 !important;
         margin: 0 !important;
     }
     
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child > div {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:first-child > div {
         padding: 0 !important;
         margin: 0 !important;
     }
     
     /* 4. Reduce space between each control in the left panel */
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child .stSelectbox {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:first-child .stSelectbox {
         margin-bottom: 0 !important;
         padding-bottom: 0 !important;
     }
     
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child .stRadio {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:first-child .stRadio {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
     }
     
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child .element-container {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:first-child .element-container {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
         padding-top: 0 !important;
@@ -417,15 +417,15 @@ st.markdown("""
     }
     
     /* 5. Target selection boxes and radio labels specifically to reduce their padding */
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child label {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:first-child label {
         padding-bottom: 0 !important;
         margin-bottom: 0 !important;
         font-size: 0.9em !important;
     }
     
     /* 6. Target the control inputs themselves */
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child select,
-    div[data-testid="tabs"] > div:nth-child(6) div[data-testid="column"]:first-child input {
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:first-child select,
+    div[data-testid="tabs"] > div:nth-child(8) div[data-testid="column"]:first-child input {
         margin-top: 0 !important;
         margin-bottom: 2px !important;
         padding-top: 0 !important;
@@ -524,417 +524,27 @@ with st.expander("📚 How to Use & Mathematical Background", expanded=False):
     - **Probability of Major Loss**: The chance of losing a catastrophic amount (over 99% of initial investment)
     """)
 
-# Sidebar for inputs
-st.sidebar.header("🎯 Simulation Parameters")
-
-# Add a more prominent reset button with custom styling
-st.sidebar.markdown("""
-<style>
-.reset-button {
-    background-color: #FF5252;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: none;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    width: 100%;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: all 0.3s;
-}
-.reset-button:hover {
-    background-color: #FF1744;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    transform: translateY(-2px);
-}
-</style>
-""", unsafe_allow_html=True)
-
-if st.sidebar.button("🔄 Reset Cache", help="Clear all cached calculations to get fresh results", use_container_width=True):
-    # Clear all st.cache_data
+# Sidebar: Reset Cache only
+if st.sidebar.button("🔄 Reset Cache",
+                     help="Clear all cached calculations to get fresh results",
+                     use_container_width=True):
     st.cache_data.clear()
-    st.sidebar.success("✅ Cache cleared! Results will be recalculated.")
-
-# Add instructional text under the button with bold formatting
-st.sidebar.markdown("<p style='font-weight: bold; margin-top: 0; font-size: 0.85em;'>Click here every time you run a new simulation</p>", unsafe_allow_html=True)
-st.sidebar.markdown("<hr style='margin: 15px 0; border-color: #ccc;'>", unsafe_allow_html=True)
-
-# Asset selection
-st.sidebar.markdown('<div class="sub-header">🔍 Asset Selection</div>', unsafe_allow_html=True)
-
-asset_type = st.sidebar.selectbox(
-    "Asset Type",
-    options=["📊 Equity Index", "🏢 Individual Stock", "📈 Sector ETF", "🔒 Bond"],
-    index=0,
-    help="Select the type of asset to simulate. Different asset classes have different historical return patterns, volatility characteristics, and risk profiles."
-)
-
-# Specific asset selection based on type
-if asset_type == "📊 Equity Index" or asset_type == "Equity Index":
-    asset = st.sidebar.selectbox(
-        "Equity Index",
-        options=[
-            "SP500", "NASDAQ", "DOW_JONES", "RUSSELL2000",
-            "EURO_STOXX50", "STOXX600", "FTSE100", "DAX", "CAC40", "SMI",
-            "NIKKEI225", "HANG_SENG", "ASX200", "KOSPI", "STI",
-            "TSX", "BOVESPA", "MEXICO_IPC",
-            "MSCI_WORLD", "EMERGING", "MSCI_ACWI",
-        ],
-        index=0,
-        format_func=lambda x: {
-            "SP500":        "🇺🇸 S&P 500",
-            "NASDAQ":       "🇺🇸 Nasdaq 100",
-            "DOW_JONES":    "🇺🇸 Dow Jones Industrial Average",
-            "RUSSELL2000":  "🇺🇸 Russell 2000",
-            "EURO_STOXX50": "🇪🇺 Euro Stoxx 50",
-            "STOXX600":     "🇪🇺 STOXX Europe 600",
-            "FTSE100":      "🇬🇧 FTSE 100 (UK)",
-            "DAX":          "🇩🇪 DAX (Germany)",
-            "CAC40":        "🇫🇷 CAC 40 (France)",
-            "SMI":          "🇨🇭 Swiss Market Index",
-            "NIKKEI225":    "🇯🇵 Nikkei 225 (Japan)",
-            "HANG_SENG":    "🇭🇰 Hang Seng (Hong Kong)",
-            "ASX200":       "🇦🇺 ASX 200 (Australia)",
-            "KOSPI":        "🇰🇷 KOSPI (South Korea)",
-            "STI":          "🇸🇬 Straits Times Index (Singapore)",
-            "TSX":          "🇨🇦 S&P/TSX (Canada)",
-            "BOVESPA":      "🇧🇷 Ibovespa (Brazil)",
-            "MEXICO_IPC":   "🇲🇽 IPC (Mexico)",
-            "MSCI_WORLD":   "🌍 MSCI World ETF",
-            "EMERGING":     "🌏 MSCI Emerging Markets ETF",
-            "MSCI_ACWI":    "🌐 MSCI All Country World ETF",
-        }.get(x, x),
-        help="Select the equity index to simulate"
-    )
-elif asset_type == "🏢 Individual Stock" or asset_type == "Individual Stock":
-    # Popular stock tickers organized by sector
-    popular_stocks = {
-        "Technology": ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "INTC", "AMD", "CRM"],
-        "Finance": ["JPM", "BAC", "WFC", "GS", "MS", "V", "MA", "AXP", "C", "BLK"],
-        "Healthcare": ["JNJ", "PFE", "MRK", "UNH", "ABBV", "BMY", "ABT", "TMO", "LLY", "AMGN"],
-        "Consumer": ["KO", "PEP", "MCD", "NKE", "PG", "WMT", "DIS", "SBUX", "HD", "TGT"],
-        "Industrial": ["GE", "BA", "CAT", "MMM", "HON", "UPS", "FDX", "LMT", "RTX", "DE"],
-        "Energy": ["XOM", "CVX", "COP", "SLB", "EOG", "OXY", "PSX", "BP", "RDS.A", "TOT"],
-        "Other": ["Custom Ticker"]
-    }
-    
-    # First select sector
-    sector = st.sidebar.selectbox(
-        "Sector",
-        options=list(popular_stocks.keys()),
-        index=0,
-        help="Select a market sector"
-    )
-    
-    # Then select stock from that sector
-    if sector == "Other":
-        asset = st.sidebar.text_input(
-            "Custom Stock Ticker",
-            value="",
-            help="Enter any ticker symbol (e.g., AAPL for Apple Inc.)"
-        )
-        if not asset:  # If empty, default to AAPL
-            asset = "AAPL"
-    else:
-        asset = st.sidebar.selectbox(
-            "Stock Ticker",
-            options=popular_stocks[sector],
-            index=0,
-            format_func=lambda x: {
-                "AAPL": "Apple (AAPL)", 
-                "MSFT": "Microsoft (MSFT)", 
-                "GOOGL": "Alphabet (GOOGL)",
-                "AMZN": "Amazon (AMZN)",
-                "META": "Meta Platforms (META)",
-                "NVDA": "NVIDIA (NVDA)",
-                "TSLA": "Tesla (TSLA)",
-                "INTC": "Intel (INTC)",
-                "AMD": "AMD (AMD)",
-                "CRM": "Salesforce (CRM)",
-                # Finance
-                "JPM": "JPMorgan Chase (JPM)",
-                "BAC": "Bank of America (BAC)",
-                "WFC": "Wells Fargo (WFC)",
-                "GS": "Goldman Sachs (GS)",
-                "MS": "Morgan Stanley (MS)",
-                "V": "Visa (V)",
-                "MA": "Mastercard (MA)",
-                "AXP": "American Express (AXP)",
-                "C": "Citigroup (C)",
-                "BLK": "BlackRock (BLK)",
-                # Healthcare
-                "JNJ": "Johnson & Johnson (JNJ)",
-                "PFE": "Pfizer (PFE)",
-                "MRK": "Merck (MRK)",
-                "UNH": "UnitedHealth (UNH)",
-                "ABBV": "AbbVie (ABBV)",
-                "BMY": "Bristol Myers Squibb (BMY)",
-                "ABT": "Abbott Laboratories (ABT)",
-                "TMO": "Thermo Fisher (TMO)",
-                "LLY": "Eli Lilly (LLY)",
-                "AMGN": "Amgen (AMGN)",
-                # Consumer
-                "KO": "Coca-Cola (KO)",
-                "PEP": "PepsiCo (PEP)",
-                "MCD": "McDonald's (MCD)",
-                "NKE": "Nike (NKE)",
-                "PG": "Procter & Gamble (PG)",
-                "WMT": "Walmart (WMT)",
-                "DIS": "Disney (DIS)",
-                "SBUX": "Starbucks (SBUX)",
-                "HD": "Home Depot (HD)",
-                "TGT": "Target (TGT)",
-                # Industrial
-                "GE": "General Electric (GE)",
-                "BA": "Boeing (BA)",
-                "CAT": "Caterpillar (CAT)",
-                "MMM": "3M (MMM)",
-                "HON": "Honeywell (HON)",
-                "UPS": "UPS (UPS)",
-                "FDX": "FedEx (FDX)",
-                "LMT": "Lockheed Martin (LMT)",
-                "RTX": "Raytheon Technologies (RTX)",
-                "DE": "Deere & Company (DE)",
-                # Energy
-                "XOM": "ExxonMobil (XOM)",
-                "CVX": "Chevron (CVX)",
-                "COP": "ConocoPhillips (COP)",
-                "SLB": "Schlumberger (SLB)",
-                "EOG": "EOG Resources (EOG)",
-                "OXY": "Occidental Petroleum (OXY)",
-                "PSX": "Phillips 66 (PSX)",
-                "BP": "BP (BP)",
-                "RDS.A": "Royal Dutch Shell (RDS.A)",
-                "TOT": "Total (TOT)"
-            }.get(x, x),
-            help="Select a stock ticker symbol"
-        )
-elif asset_type == "📈 Sector ETF" or asset_type == "Sector ETF":
-    asset = st.sidebar.selectbox(
-        "Sector / Bond ETF",
-        options=["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "XLB", "XLC", "CLRE", "TLT"],
-        index=0,
-        format_func=lambda x: {
-            "XLK":  "Technology (XLK)",
-            "XLF":  "Financials (XLF)",
-            "XLE":  "Energy (XLE)",
-            "XLV":  "Health Care (XLV)",
-            "XLY":  "Consumer Discretionary (XLY)",
-            "XLP":  "Consumer Staples (XLP)",
-            "XLI":  "Industrials (XLI)",
-            "XLU":  "Utilities (XLU)",
-            "XLB":  "Materials (XLB)",
-            "XLC":  "Communication Services (XLC)",
-            "CLRE": "Return Stacked Bonds & Futures (CLRE)",
-            "TLT":  "20+ Year Treasury Bond ETF (TLT)",
-        }.get(x, x),
-        help="Select the sector or bond ETF to simulate"
-    )
-else:  # Bond (🔒 Bond or Bond)
-    asset = st.sidebar.selectbox(
-        "Bond Type",
-        options=["US10Y", "US30Y", "US3M", "TLT", "IEF", "SHY"],
-        index=0,
-        format_func=lambda x: {
-            "US10Y": "10-Year US Treasury Yield",
-            "US30Y": "30-Year US Treasury Yield",
-            "US3M": "3-Month US Treasury Yield",
-            "TLT": "iShares 20+ Year Treasury Bond ETF",
-            "IEF": "iShares 7-10 Year Treasury Bond ETF",
-            "SHY": "iShares 1-3 Year Treasury Bond ETF"
-        }.get(x, x),
-        help="Select the bond type to simulate"
-    )
-
-# Historical Data Period as a slider for years
-historical_years = st.sidebar.slider(
-    "Historical Data Years",
-    min_value=1,
-    max_value=100,  # Allow up to 100 years to cover all available data
-    value=10,
-    step=1,
-    help="Number of years of historical data to use for simulation parameters"
-)
-
-# Convert slider value to appropriate period format for data fetchers
-# Using a more granular mapping to ensure different periods get different data
-if historical_years == 1:
-    data_period = "1y"
-elif historical_years == 2:
-    data_period = "2y"  
-elif historical_years == 3:
-    data_period = "3y"
-elif historical_years == 4:
-    data_period = "4y"
-elif historical_years == 5:
-    data_period = "5y"
-elif historical_years <= 7:
-    data_period = "7y"
-elif historical_years <= 10:
-    data_period = "10y"
-elif historical_years <= 15:
-    data_period = "15y"  # Custom period
-elif historical_years <= 20:
-    data_period = "20y"  # Custom period
-else:
-    data_period = "max"  # Use max for longer periods
-
-# Display actual period being used for transparency
-st.sidebar.caption(f"Using data period: {data_period}")
-
-# Investment parameters
-st.sidebar.markdown('<div class="sub-header">💰 Investment Parameters</div>', unsafe_allow_html=True)
-
-investment_amount = st.sidebar.number_input(
-    "Initial Investment ($)",
-    min_value=1000,
-    max_value=10000000,
-    value=10000,
-    step=1000,
-    help="Your initial investment amount in dollars"
-)
-
-time_horizon = st.sidebar.slider(
-    "Time Horizon (Years)",
-    min_value=1,
-    max_value=30,
-    value=10,
-    step=1,
-    help="Number of years to simulate"
-)
-
-# Simulation parameters
-st.sidebar.markdown('<div class="sub-header">⚙️ Simulation Parameters</div>', unsafe_allow_html=True)
-
-# Define available models based on installed packages
-available_models = [
-    "🎲 Monte Carlo", 
-    "📉 Geometric Brownian Motion"
-]
-
-if HAS_GARCH:
-    available_models.append("📊 GARCH(1,1)")
-else:
-    st.sidebar.warning("GARCH model is not available. Install the 'arch' package with `pip install arch`.")
-
-available_models.extend([
-    "⛓️ Markov Chain",
-    "🔄 Feynman Path Integral"
-])
-
-model_type = st.sidebar.selectbox(
-    "Simulation Model",
-    options=available_models,
-    index=0,
-    help="Mathematical model to use for simulating returns. Each model makes different assumptions about the distribution and behavior of returns. Standard Monte Carlo is simplest, while GARCH and Markov Chain can capture more complex market dynamics."
-)
-
-num_simulations = st.sidebar.slider(
-    "Number of Simulations",
-    min_value=10,
-    max_value=3000,
-    value=200,
-    step=10,
-    help="More simulations = more accurate results but slower performance. Recommended range: 200-1000 for balance between speed and accuracy."
-)
-
-risk_free_rate = st.sidebar.slider(
-    "Risk-Free Rate (%)",
-    min_value=0.0,
-    max_value=10.0,
-    value=2.0,
-    step=0.1,
-    help="Annual risk-free interest rate (e.g., Treasury yield)"
-) / 100  # Convert to decimal
-
-# Leverage parameters
-st.sidebar.markdown('<div class="sub-header">📊 Leverage Parameters</div>', unsafe_allow_html=True)
-
-leverage_method = st.sidebar.selectbox(
-    "Leverage Method",
-    options=["Manual", "Kelly Criterion", "Fractional Kelly", "Numerical Optimization"],
-    index=0,
-    help="Method to determine leverage applied to returns. Manual: set leverage directly. Kelly Criterion: optimal leverage to maximize long-term growth rate. Fractional Kelly: a more conservative fraction of the Kelly value. Numerical Optimization: finds optimal leverage using simulation data."
-)
-
-if leverage_method == "Manual":
-    leverage = st.sidebar.slider(
-        "Leverage",
-        min_value=0.0,
-        max_value=5.0,
-        value=1.0,
-        step=0.1,
-        help="Leverage to apply (1.0 = no leverage)"
-    )
-elif leverage_method == "Fractional Kelly":
-    kelly_fraction = st.sidebar.slider(
-        "Kelly Fraction",
-        min_value=0.1,
-        max_value=1.0,
-        value=0.5,
-        step=0.1,
-        help="Fraction of full Kelly to use (0.5 = Half Kelly, more conservative)"
-    )
-
-# Additional model-specific parameters
-model_params = {}
-
-if model_type == "GARCH(1,1)" and HAS_GARCH:
-    model_params['p'] = st.sidebar.slider(
-        "GARCH Lag (p)",
-        min_value=1,
-        max_value=3,
-        value=1,
-        step=1,
-        help="GARCH model lag parameter"
-    )
-    model_params['q'] = st.sidebar.slider(
-        "ARCH Lag (q)",
-        min_value=1,
-        max_value=3,
-        value=1,
-        step=1,
-        help="ARCH model lag parameter"
-    )
-elif model_type == "Markov Chain":
-    model_params['num_states'] = st.sidebar.slider(
-        "Number of States",
-        min_value=2,
-        max_value=10,
-        value=5,
-        step=1,
-        help="Number of discrete states in the Markov chain"
-    )
-elif model_type == "Feynman Path Integral":
-    model_params['num_paths'] = st.sidebar.slider(
-        "Number of Paths",
-        min_value=100,
-        max_value=2000,
-        value=1000,
-        step=100,
-        help="Number of paths to sample in the path integral"
-    )
-    model_params['num_time_steps'] = st.sidebar.slider(
-        "Number of Time Steps",
-        min_value=10,
-        max_value=100,
-        value=50,
-        step=10,
-        help="Number of time steps for discretization"
-    )
+    for k in ["_sim_result","_asset_data","_leverage","_chart_gen","_kelly_result",
+              "_hist_years","_lev_method","_rf_rate"]:
+        st.session_state.pop(k, None)
+    st.sidebar.success("✅ Cache cleared!")
+st.sidebar.caption("Click here every time you run a new simulation")
 
 # Initialize tabs (using CSS to make them bold rather than HTML tags)
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
-    "📊 Dashboard", 
-    "🔬 Simulation Details", 
-    "📈 Kelly Analysis", 
+    "📊 Dashboard",
+    "🔬 Simulation Details",
+    "📈 Kelly Analysis",
     "🗂️ Portfolio Simulator",
-    "🛠️ Use Cases", 
-    "ℹ️ About Models", 
-    "🎮 Kelly Game",
     "🔍 Portfolio Optimizer",
+    "🛠️ Use Cases",
+    "ℹ️ About Models",
+    "🎮 Kelly Game",
 ])
 
 # Add even stronger CSS to make tab text bold
@@ -1108,512 +718,406 @@ def calculate_kelly(_returns, risk_free_rate, _asset_name):
         'leverage_curve': (leverage_values, growth_rates, optimal_leverage)
     }
 
-# Add separator to end of sidebar
-st.sidebar.markdown('---')
+# ─── Dashboard tab: parameters + Run Simulation + results ──────────────────
+with tab1:
+    # ── Simulation Parameters (moved from sidebar) ──────────────────────────
+    with st.expander("⚙️ Simulation Parameters", expanded=True):
+        p_col1, p_col2, p_col3, p_col4 = st.columns(4)
 
-# Run simulation when user clicks the button
-current_tab_index = st.query_params.get("tab", ["0"])[0]
-is_kelly_game_tab = (current_tab_index == "5")  # Kelly Game is the 6th tab (index 5)
-
-if st.button("Run Simulation"):
-    # Show progress spinner
-    with st.spinner("Fetching asset data and running simulation..."):
-        # Fetch asset data
-        asset_data = fetch_asset_data(asset_type, asset, data_period)
-        
-        if asset_data:
-            # Display asset information with years of data
-            data_years = asset_data['stats'].get('data_period_years', historical_years)
-            st.markdown(f"<div class='sub-header'>Analysis for: {asset_data['name']} ({data_years} years of data)</div>", unsafe_allow_html=True)
-            
-            # Calculate Kelly criterion if needed
-            if leverage_method in ["Kelly Criterion", "Fractional Kelly", "Numerical Optimization"]:
-                kelly_result = calculate_kelly(
-                    _returns=asset_data['returns']['daily'], 
-                    risk_free_rate=risk_free_rate,
-                    _asset_name=asset_data['name']
-                )
-                
-                # Determine leverage based on method
-                if leverage_method == "Kelly Criterion":
-                    leverage = kelly_result['full_kelly']
-                elif leverage_method == "Fractional Kelly":
-                    leverage = kelly_result['full_kelly'] * kelly_fraction
-                else:  # Numerical Optimization
-                    leverage = kelly_result['optimal_leverage']
-                
-                st.info(f"Using {leverage_method} leverage: {leverage:.2f}x")
-            
-            # Run simulation
-            result = run_simulation(
-                asset_data, 
-                model_type, 
-                investment_amount, 
-                time_horizon, 
-                num_simulations, 
-                risk_free_rate, 
-                leverage, 
-                model_params
+        with p_col1:
+            st.markdown("**🔍 Asset**")
+            asset_type = st.selectbox(
+                "Asset Type",
+                ["📊 Equity Index","🏢 Individual Stock","📈 Sector ETF","🔒 Bond"],
+                index=0, key="dash_asset_type"
             )
-            
-            if result:
-                # Create chart generator
-                chart_gen = ChartGenerator()
-                
-                # Dashboard tab content
-                with tab1:
-                    st.markdown('<div class="sub-header">Simulation Dashboard</div>', unsafe_allow_html=True)
-                    
-                    # Show key metrics
-                    col1, col2, col3, col4 = st.columns(4)
-                    with col1:
-                        st.metric("Initial Investment", f"${investment_amount:,.0f}")
-                    with col2:
-                        # Add confidence interval to Final Median Value
-                        median_value = result['stats']['median']
-                        p5 = result['stats']['percentiles']['5%']
-                        p95 = result['stats']['percentiles']['95%']
-                        st.metric(
-                            "Final Median Value", 
-                            f"${median_value:,.0f}",
-                            f"95% CI: ${p5:,.0f} to ${p95:,.0f}"
-                        )
-                    with col3:
-                        # Add confidence interval to Median Annual Return
-                        cagr = result['stats']['cagr']['median']
-                        cagr_p5 = result['stats']['cagr']['percentiles']['5%']
-                        cagr_p95 = result['stats']['cagr']['percentiles']['95%']
-                        st.metric(
-                            "Median Annual Return", 
-                            f"{cagr*100:.2f}%",
-                            f"95% CI: {cagr_p5*100:.2f}% to {cagr_p95*100:.2f}%"
-                        )
-                    with col4:
-                        st.metric("Leverage", f"{leverage:.2f}x")
-                    
-                    # Add bust counter metrics with expanded information
-                    st.subheader("Path Analysis")
-                    st.markdown("Analysis of simulation paths based on performance thresholds")
-                    
-                    # Create two rows for better organization
-                    bust_col1, bust_col2 = st.columns(2)
-                    with bust_col1:
-                        st.markdown("##### Underperforming Paths")
-                        under_col1, under_col2 = st.columns(2)
-                        
-                        # Get the ruin threshold and format it
-                        ruin_threshold = result['stats']['bust_counters']['ruin_threshold']
-                        
-                        with under_col1:
-                            st.metric(
-                                f"Major Loss (>99%)", 
-                                f"{result['stats']['bust_counters']['total_ruin']} paths",
-                                f"{result['stats']['bust_counters']['total_ruin_pct']*100:.2f}%",
-                                delta_color="inverse"
-                            )
-                            st.caption(f"Final value below ${ruin_threshold:.2f}")
-                        
-                        with under_col2:
-                            st.metric(
-                                "Below Initial Investment", 
-                                f"{result['stats']['bust_counters']['below_initial']} paths",
-                                f"{result['stats']['bust_counters']['below_initial_pct']*100:.2f}%",
-                                delta_color="inverse"
-                            )
-                            
-                    with bust_col2:
-                        st.markdown("##### Outperforming Paths")
-                        over_col1, over_col2 = st.columns(2)
-                        
-                        with over_col1:
-                            st.metric(
-                                "Above Initial Investment", 
-                                f"{result['stats']['bust_counters']['above_initial']} paths",
-                                f"{result['stats']['bust_counters']['above_initial_pct']*100:.2f}%"
-                            )
-                        
-                        with over_col2:
-                            # Get benchmark name and value
-                            benchmark_name = result['stats']['bust_counters']['benchmark_name']
-                            benchmark_value = result['stats']['bust_counters']['benchmark_value']
-                            
-                            st.metric(
-                                f"Above Benchmark", 
-                                f"{result['stats']['bust_counters']['above_benchmark']} paths",
-                                f"{result['stats']['bust_counters']['above_benchmark_pct']*100:.2f}%"
-                            )
-                            st.caption(f"{benchmark_name} (${benchmark_value:,.0f})")
-                    
-                    # Show simulation paths
-                    st.subheader("Simulation Paths")
-                    paths_fig = chart_gen.plot_simulation_paths(
-                        result['paths'], 
-                        title=f"{asset_data['name']} Simulation Paths (Leverage: {leverage:.2f}x)",
-                        num_paths=50
-                    )
-                    st.pyplot(paths_fig)
-                    
-                    # Show final distribution
-                    st.subheader("Distribution of Final Values")
-                    dist_fig = chart_gen.plot_final_distribution(result)
-                    st.pyplot(dist_fig)
-                
-                # Simulation Details tab content
-                with tab2:
-                    st.markdown('<div class="sub-header">Historical Data Analysis</div>', unsafe_allow_html=True)
-                    
-                    # Show historical statistics with period info
-                    st.info(f"Analysis based on {historical_years} years of historical data")
-                    
-                    hist_col1, hist_col2, hist_col3, hist_col4 = st.columns(4)
-                    with hist_col1:
-                        st.metric(
-                            "Historical Annual Return", 
-                            f"{asset_data['stats']['mean_annual']*100:.2f}%",
-                            help=f"Based on {historical_years} years of historical data"
-                        )
-                    with hist_col2:
-                        st.metric(
-                            "Historical Volatility", 
-                            f"{asset_data['stats']['std_annual']*100:.2f}%",
-                            help=f"Annualized standard deviation of returns"
-                        )
-                    with hist_col3:
-                        st.metric(
-                            "Historical Sharpe Ratio", 
-                            f"{asset_data['stats']['sharpe_ratio']:.2f}",
-                            help="Ratio of excess returns to volatility (higher is better)"
-                        )
-                    with hist_col4:
-                        if 'max_drawdown' in asset_data['stats']:
-                            st.metric(
-                                "Historical Max Drawdown", 
-                                f"{asset_data['stats']['max_drawdown']*100:.2f}%",
-                                help="Largest peak-to-trough decline during the historical period"
-                            )
-                    
-                    # Show historical price plot
-                    st.markdown('<div class="sub-header">Historical Price Performance</div>', unsafe_allow_html=True)
-                    
-                    # Completely rewritten historical price chart with guaranteed dimension matching
-                    try:
-                        # Create figure and axis
-                        fig, ax = plt.subplots(figsize=(12, 6))
-                        
-                        # Set modern style for plot
-                        ax.set_facecolor('#f8f9fa')
-                        fig.patch.set_facecolor('#ffffff')
-                        
-                        # Get price column from data
-                        price_col = 'Adj Close' if 'Adj Close' in asset_data['data'].columns else 'Close'
-                        
-                        # Get historical data
-                        hist_dates = asset_data['data'].index
-                        hist_prices = asset_data['data'][price_col].values
-                        
-                        # Plot historical price data
-                        ax.plot(hist_dates, hist_prices, label='Historical Price', color='#1E88E5', linewidth=2)
-                        
-                        # Get the last historical date and price
-                        start_date = hist_dates[-1]
-                        last_price = hist_prices[-1]
-                        
-                        # Extract simulation data safely
-                        sim_data = {}
-                        
-                        # First convert result paths to numpy for consistent handling
-                        if isinstance(result['paths'], pd.DataFrame):
-                            # Get dates as list
-                            sim_dates = result['paths'].index.tolist()
-                            
-                            # Calculate metrics
-                            sim_data['median'] = result['paths'].median(axis=1).values
-                            sim_data['mean'] = result['paths'].mean(axis=1).values
-                            sim_data['p5'] = result['paths'].quantile(0.05, axis=1).values
-                            sim_data['p95'] = result['paths'].quantile(0.95, axis=1).values
-                        else:
-                            # If it's not a DataFrame, handle as numpy array
-                            sim_dates = [start_date + pd.Timedelta(days=i*365.25/252) for i in range(result['paths'].shape[1])]
-                            sim_data['median'] = np.median(result['paths'], axis=0)
-                            sim_data['mean'] = np.mean(result['paths'], axis=0)
-                            sim_data['p5'] = np.percentile(result['paths'], 5, axis=0)
-                            sim_data['p95'] = np.percentile(result['paths'], 95, axis=0)
-                        
-                        # Ensure all arrays are exactly the same length
-                        min_length = min(len(sim_dates), 
-                                         len(sim_data['median']),
-                                         len(sim_data['mean']), 
-                                         len(sim_data['p5']), 
-                                         len(sim_data['p95']))
-                        
-                        # Verify array dimensions match
-                        print(f"DEBUG - Confirmed array length: {min_length}")
-                        
-                        # Use only the first min_length elements
-                        sim_dates = sim_dates[:min_length]
-                        for key in sim_data:
-                            sim_data[key] = sim_data[key][:min_length]
-                        
-                        # Normalize the simulation paths to start at the last historical price
-                        init_portfolio = result['investment_amount']
-                        scale_factor = last_price / init_portfolio
-                        
-                        # Plot simulation overlays with modern colors
-                        ax.plot(sim_dates, sim_data['median'] * scale_factor, 
-                                color='#0277BD', linestyle='--', linewidth=2, label='Simulation Median')
-                        ax.plot(sim_dates, sim_data['mean'] * scale_factor, 
-                                color='#26A69A', linestyle=':', linewidth=2, label='Simulation Mean')
-                        
-                        # Add confidence interval
-                        ax.fill_between(sim_dates, 
-                                       sim_data['p5'] * scale_factor, 
-                                       sim_data['p95'] * scale_factor, 
-                                       color='#90CAF9', alpha=0.3, label='90% Confidence Interval')
-                        
-                        # Add grid and styling
-                        ax.grid(True, linestyle='-', alpha=0.2)
-                        for spine in ax.spines.values():
-                            spine.set_edgecolor('#cccccc')
-                        
-                        # Customize plot
-                        ax.set_title(f'{asset_data["name"]} Historical Price with Simulation Projections', fontsize=14)
-                        ax.set_ylabel('Price ($)', fontsize=12)
-                        ax.set_xlabel('Date', fontsize=12)
-                        
-                        # Add marker for simulation start
-                        ax.annotate('Simulation begins →', 
-                                  xy=(start_date, last_price),
-                                  xytext=(-100, 30),
-                                  textcoords='offset points',
-                                  arrowprops=dict(arrowstyle='->', color='#0277BD', lw=1.5),
-                                  fontsize=10,
-                                  color='#0277BD')
-                        
-                        # Add legend
-                        legend = ax.legend(loc='upper left', framealpha=0.9)
-                    
-                    except Exception as e:
-                        st.error(f"Error creating historical price chart: {str(e)}")
-                        print(f"ERROR - Historical chart: {str(e)}")
-                        # Continue with other parts of the app instead of crashing
-                        fig, ax = plt.subplots(figsize=(12, 6))
-                        ax.text(0.5, 0.5, "Chart could not be rendered due to dimension mismatch.", 
-                               ha='center', va='center', fontsize=14, color='#ff2a6d')
-                        ax.set_facecolor('#14142a')
-                        fig.patch.set_facecolor('#0c0c14')
-                    
-                    st.pyplot(fig)
-                    
-                    # Show simulation statistics
-                    st.markdown('<div class="sub-header">Simulation Statistics</div>', unsafe_allow_html=True)
-                    
-                    # Create two columns for statistics
-                    stat_col1, stat_col2 = st.columns(2)
-                    
-                    with stat_col1:
-                        st.markdown("#### Value Statistics")
-                        st.markdown(f"""
-                        - **Median Value**: ${result['stats']['median']:,.2f}
-                        - **Mean Value**: ${result['stats']['mean']:,.2f}
-                        - **Minimum Value**: ${result['stats']['min']:,.2f}
-                        - **Maximum Value**: ${result['stats']['max']:,.2f}
-                        - **Standard Deviation**: ${result['stats']['std']:,.2f}
-                        """)
-                        
-                        st.markdown("#### Percentiles")
-                        st.markdown(f"""
-                        - **5th Percentile**: ${result['stats']['percentiles']['5%']:,.2f}
-                        - **25th Percentile**: ${result['stats']['percentiles']['25%']:,.2f}
-                        - **50th Percentile (Median)**: ${result['stats']['percentiles']['50%']:,.2f}
-                        - **75th Percentile**: ${result['stats']['percentiles']['75%']:,.2f}
-                        - **95th Percentile**: ${result['stats']['percentiles']['95%']:,.2f}
-                        """)
-                    
-                    with stat_col2:
-                        st.markdown("#### Risk Metrics")
-                        st.markdown(f"""
-                        - **Median CAGR**: {result['stats']['cagr']['median']*100:.2f}%
-                        - **Mean CAGR**: {result['stats']['cagr']['mean']*100:.2f}%
-                        - **5th Percentile CAGR**: {result['stats']['cagr']['percentiles']['5%']*100:.2f}%
-                        - **95th Percentile CAGR**: {result['stats']['cagr']['percentiles']['95%']*100:.2f}%
-                        """)
-                        
-                        st.markdown("#### Drawdown Risk")
-                        st.markdown(f"""
-                        - **Median Max Drawdown**: {result['stats']['max_drawdown']['median']*100:.2f}%
-                        - **Mean Max Drawdown**: {result['stats']['max_drawdown']['mean']*100:.2f}%
-                        - **Maximum Drawdown**: {result['stats']['max_drawdown']['max']*100:.2f}%
-                        """)
-                        
-                        st.markdown(f"**Probability of Major Loss (>99%)**: {result['stats']['ruin_probability']*100:.2f}%")
-                    
-                    # Add Sharpe Ratio comparison section
-                    st.markdown('<div class="sub-header">Sharpe Ratio Comparison</div>', unsafe_allow_html=True)
-                    
-                    # Create columns for Sharpe ratio comparison
-                    sharpe_col1, sharpe_col2, sharpe_col3, sharpe_col4 = st.columns(4)
-                    
-                    with sharpe_col1:
-                        # Historical Sharpe
-                        historical_sharpe = asset_data['stats']['sharpe_ratio']
-                        st.metric(
-                            "Historical Sharpe Ratio",
-                            f"{historical_sharpe:.2f}",
-                            help=f"Based on {historical_years} years of historical data"
-                        )
-                    
-                    with sharpe_col2:
-                        # Simulated median Sharpe
-                        sim_median_sharpe = result['stats']['sharpe_ratio']['median']
-                        st.metric(
-                            "Simulation Median Sharpe",
-                            f"{sim_median_sharpe:.2f}",
-                            f"{(sim_median_sharpe - historical_sharpe):.2f}",
-                            help="Median Sharpe ratio across all simulation paths"
-                        )
-                        
-                    with sharpe_col3:
-                        # Simulated mean Sharpe
-                        sim_mean_sharpe = result['stats']['sharpe_ratio']['mean']
-                        st.metric(
-                            "Simulation Mean Sharpe",
-                            f"{sim_mean_sharpe:.2f}",
-                            f"{(sim_mean_sharpe - historical_sharpe):.2f}",
-                            help="Average Sharpe ratio across all simulation paths"
-                        )
-                    
-                    with sharpe_col4:
-                        # Simulation Sharpe range
-                        sharpe_p5 = result['stats']['sharpe_ratio']['percentiles']['5%']
-                        sharpe_p95 = result['stats']['sharpe_ratio']['percentiles']['95%']
-                        st.metric(
-                            "Simulation Sharpe (95% CI)",
-                            f"{sharpe_p5:.2f} to {sharpe_p95:.2f}",
-                            help="5th to 95th percentile range of Sharpe ratios"
-                        )
-                    
-                    # Create a bar chart to compare historical vs simulated Sharpe ratios with modern style
-                    fig, ax = plt.subplots(figsize=(10, 5))
-                    ax.set_facecolor('#f8f9fa')
-                    fig.patch.set_facecolor('#ffffff')
-                    
-                    # Data for the bar chart - now including mean
-                    sharpe_values = [historical_sharpe, result['stats']['sharpe_ratio']['median'], result['stats']['sharpe_ratio']['mean']]
-                    labels = ['Historical', 'Simulation Median', 'Simulation Mean']
-                    colors = ['#1E88E5', '#26A69A', '#AB47BC']  # Blue, teal, and purple - modern color scheme
-                    
-                    # Plot bars
-                    bars = ax.bar(labels, sharpe_values, color=colors, width=0.5)
-                    
-                    # Add value labels on top of bars
-                    for bar in bars:
-                        height = bar.get_height()
-                        ax.text(bar.get_x() + bar.get_width()/2., height + 0.1,
-                                f'{height:.2f}', ha='center', va='bottom', color='#333333')
-                    
-                    # Add error bar for simulation (5th to 95th percentile range)
-                    ax.errorbar(1, result['stats']['sharpe_ratio']['median'], 
-                                yerr=[[result['stats']['sharpe_ratio']['median'] - sharpe_p5], 
-                                      [sharpe_p95 - result['stats']['sharpe_ratio']['median']]], 
-                                fmt='o', color='#0277BD', capsize=10, capthick=2)
-                    
-                    # Add note about leverage effect
-                    leverage_note = f"Note: Simulation Sharpe reflects {leverage:.1f}x leverage"
-                    ax.annotate(leverage_note, xy=(0.98, 0.02), xycoords='axes fraction',
-                                ha='right', va='bottom', fontsize=10, style='italic')
-                    
-                    # Customize plot
-                    ax.set_title('Sharpe Ratio Comparison', fontsize=14)
-                    ax.set_ylabel('Sharpe Ratio')
-                    ax.grid(True, alpha=0.2, linestyle='-')
-                    
-                    # Modern border styling
-                    for spine in ax.spines.values():
-                        spine.set_color('#cccccc')
-                        spine.set_linewidth(0.8)
-                    
-                    st.pyplot(fig)
-                    
-                    # Model parameters if available
-                    if 'model_parameters' in result:
-                        st.markdown('<div class="sub-header">Model Parameters</div>', unsafe_allow_html=True)
-                        st.json(result['model_parameters'])
-                
-                # Kelly Analysis tab content
-                with tab3:
-                    st.markdown('<div class="sub-header">Kelly Criterion Analysis</div>', unsafe_allow_html=True)
-                    
-                    # Calculate Kelly if not already done
-                    if 'kelly_result' not in locals():
-                        kelly_result = calculate_kelly(
-                            _returns=asset_data['returns']['daily'], 
-                            risk_free_rate=risk_free_rate,
-                            _asset_name=asset_data['name']
-                        )
-                    
-                    # Show Kelly metrics
-                    kelly_col1, kelly_col2, kelly_col3 = st.columns(3)
-                    with kelly_col1:
-                        st.metric("Full Kelly Leverage", f"{kelly_result['full_kelly']:.2f}x")
-                    with kelly_col2:
-                        st.metric("Half Kelly Leverage", f"{kelly_result['full_kelly']/2:.2f}x")
-                    with kelly_col3:
-                        st.metric("Optimal Leverage (Numerical)", f"{kelly_result['optimal_leverage']:.2f}x")
-                    
-                    # Plot Kelly curve
-                    st.markdown('<div class="sub-header">Kelly Criterion Growth Curve</div>', unsafe_allow_html=True)
-                    kelly_fig = chart_gen.plot_kelly_curve(
-                        kelly_result['leverage_curve'][0],
-                        kelly_result['leverage_curve'][1],
-                        kelly_result['leverage_curve'][2]
-                    )
-                    st.plotly_chart(kelly_fig, use_container_width=True)
-                    
-                    # Explanation of Kelly Criterion with tooltips
-                    st.markdown('<div class="sub-header">Understanding the Kelly Criterion</div>', unsafe_allow_html=True)
-                    
-                    kelly_tooltip = financial_tooltip("Kelly Criterion", 
-                        "A mathematical formula that helps investors determine the optimal size of investments to maximize long-term growth. It balances risk and reward by calculating how much to invest based on the probability of success and the risk/reward ratio.")
-                    
-                    leverage_tooltip = financial_tooltip("leverage", 
-                        "Using borrowed capital to increase potential returns. For example, 2x leverage means you're controlling $20,000 worth of assets with just $10,000 of your own capital.")
-                    
-                    log_utility_tooltip = financial_tooltip("logarithmic utility", 
-                        "A way of measuring the satisfaction or value an investor gets from wealth. It increases with wealth but at a decreasing rate, which means gaining $1,000 means more to someone with $10,000 than to someone with $100,000.")
-                    
-                    geometric_growth_tooltip = financial_tooltip("geometric growth rate", 
-                        "The compound growth rate that accounts for compounding effects over time. Unlike arithmetic averages, it properly represents the growth of investments over multiple periods.")
-                    
-                    probability_ruin_tooltip = financial_tooltip("probability of ruin", 
-                        "The likelihood that an investor will lose all or nearly all of their capital, making recovery impossible.")
-                    
-                    fractional_kelly_tooltip = financial_tooltip("Fractional Kelly", 
-                        "Using a fraction (e.g., 50%) of the Kelly-suggested allocation to reduce risk. This approach sacrifices some expected return to gain significant reduction in volatility.")
-                    
-                    st.markdown(f"""
-                    The {kelly_tooltip} is a formula for determining the optimal size of a series of bets or investments
-                    to maximize the logarithm of wealth over the long run. For continuous returns, the formula is:
-                    
-                    **f* = (μ - r) / σ²**
-                    
-                    Where:
-                    - **f*** is the optimal {leverage_tooltip}
-                    - **μ** is the expected return
-                    - **r** is the risk-free rate
-                    - **σ²** is the variance of returns
-                    
-                    The Kelly criterion has several key properties:
-                    
-                    1. **Maximizes {log_utility_tooltip}**: It provides the highest expected {geometric_growth_tooltip}
-                    2. **No {probability_ruin_tooltip}**: When strictly followed, it ensures you never lose everything
-                    3. **Long-term optimality**: Any strategy using more or less than Kelly will underperform in the long run
-                    
-                    However, many investors use a **{fractional_kelly_tooltip}** approach (e.g., Half Kelly) to reduce risk,
-                    acknowledging that we don't know the true parameters of the return distribution.
-                    """, unsafe_allow_html=True)
-                
+            if asset_type == "📊 Equity Index":
+                asset = st.selectbox("Equity Index",
+                    ["SP500","NASDAQ","DOW_JONES","RUSSELL2000","EURO_STOXX50","STOXX600",
+                     "FTSE100","DAX","CAC40","SMI","NIKKEI225","HANG_SENG","ASX200",
+                     "KOSPI","STI","TSX","BOVESPA","MEXICO_IPC","MSCI_WORLD","EMERGING","MSCI_ACWI"],
+                    index=0, key="dash_eq_idx",
+                    format_func=lambda x: {
+                        "SP500":"🇺🇸 S&P 500","NASDAQ":"🇺🇸 Nasdaq 100","DOW_JONES":"🇺🇸 Dow Jones",
+                        "RUSSELL2000":"🇺🇸 Russell 2000","EURO_STOXX50":"🇪🇺 Euro Stoxx 50",
+                        "STOXX600":"🇪🇺 STOXX Europe 600","FTSE100":"🇬🇧 FTSE 100","DAX":"🇩🇪 DAX",
+                        "CAC40":"🇫🇷 CAC 40","SMI":"🇨🇭 Swiss SMI","NIKKEI225":"🇯🇵 Nikkei 225",
+                        "HANG_SENG":"🇭🇰 Hang Seng","ASX200":"🇦🇺 ASX 200","KOSPI":"🇰🇷 KOSPI",
+                        "STI":"🇸🇬 Straits Times","TSX":"🇨🇦 S&P/TSX","BOVESPA":"🇧🇷 Ibovespa",
+                        "MEXICO_IPC":"🇲🇽 IPC","MSCI_WORLD":"🌍 MSCI World ETF",
+                        "EMERGING":"🌏 Emerging Markets ETF","MSCI_ACWI":"🌐 MSCI ACWI ETF"
+                    }.get(x, x)
+                )
+            elif asset_type == "🏢 Individual Stock":
+                asset = st.text_input("Stock Ticker", value="AAPL", key="dash_stock",
+                                      help="Enter any ticker, e.g. AAPL")
+            elif asset_type == "📈 Sector ETF":
+                asset = st.selectbox("Sector / Bond ETF",
+                    ["XLK","XLF","XLE","XLV","XLY","XLP","XLI","XLU","XLB","XLC","CLRE","TLT"],
+                    key="dash_etf",
+                    format_func=lambda x: {
+                        "XLK":"Technology (XLK)","XLF":"Financials (XLF)","XLE":"Energy (XLE)",
+                        "XLV":"Health Care (XLV)","XLY":"Consumer Disc. (XLY)",
+                        "XLP":"Consumer Staples (XLP)","XLI":"Industrials (XLI)",
+                        "XLU":"Utilities (XLU)","XLB":"Materials (XLB)",
+                        "XLC":"Comm. Services (XLC)",
+                        "CLRE":"Return Stacked Bonds & Futures (CLRE)",
+                        "TLT":"20+ Yr Treasury ETF (TLT)"
+                    }.get(x, x)
+                )
+            else:
+                asset = st.selectbox("Bond Type",
+                    ["US10Y","US30Y","US3M","TLT","IEF","SHY"], key="dash_bond",
+                    format_func=lambda x: {
+                        "US10Y":"10-Yr US Treasury","US30Y":"30-Yr US Treasury",
+                        "US3M":"3-Mo US Treasury","TLT":"iShares 20+ Yr Treasury ETF",
+                        "IEF":"iShares 7-10 Yr Treasury ETF","SHY":"iShares 1-3 Yr Treasury ETF"
+                    }.get(x, x)
+                )
+            historical_years = st.slider("Historical Data Years", 1, 100, 10, key="dash_hist_yrs")
+            if   historical_years <= 1:  data_period = "1y"
+            elif historical_years <= 2:  data_period = "2y"
+            elif historical_years <= 3:  data_period = "3y"
+            elif historical_years <= 4:  data_period = "4y"
+            elif historical_years <= 5:  data_period = "5y"
+            elif historical_years <= 7:  data_period = "7y"
+            elif historical_years <= 10: data_period = "10y"
+            elif historical_years <= 15: data_period = "15y"
+            elif historical_years <= 20: data_period = "20y"
+            else:                        data_period = "max"
+            st.caption(f"Using data period: {data_period}")
+
+        with p_col2:
+            st.markdown("**💰 Investment**")
+            investment_amount = st.number_input("Initial Investment ($)",
+                min_value=1000, max_value=10_000_000, value=10_000, step=1_000, key="dash_invest")
+            time_horizon  = st.slider("Time Horizon (Years)", 1, 30, 10, key="dash_horizon")
+            risk_free_rate = st.slider("Risk-Free Rate (%)", 0.0, 10.0, 2.0, 0.1,
+                                       key="dash_rf") / 100
+
+        with p_col3:
+            st.markdown("**⚙️ Model**")
+            _avail_models = ["🎲 Monte Carlo", "📉 Geometric Brownian Motion"]
+            if HAS_GARCH:
+                _avail_models.append("📊 GARCH(1,1)")
+            _avail_models.extend(["⛓️ Markov Chain", "🔄 Feynman Path Integral"])
+            model_type = st.selectbox("Simulation Model", _avail_models, index=0, key="dash_model")
+            num_simulations = st.slider("Simulations", 10, 3000, 200, 10, key="dash_sims")
+            model_params = {}
+            if "GARCH" in model_type and HAS_GARCH:
+                model_params["p"] = st.slider("GARCH Lag (p)", 1, 3, 1, key="dash_gp")
+                model_params["q"] = st.slider("ARCH Lag (q)",  1, 3, 1, key="dash_gq")
+            elif "Markov" in model_type:
+                model_params["num_states"] = st.slider("States", 2, 10, 5, key="dash_states")
+            elif "Feynman" in model_type:
+                model_params["num_paths"]      = st.slider("Paths",      100, 2000, 1000, 100, key="dash_fp")
+                model_params["num_time_steps"] = st.slider("Time Steps",  10,  100,   50,  10, key="dash_ft")
+
+        with p_col4:
+            st.markdown("**📊 Leverage**")
+            leverage_method = st.selectbox("Leverage Method",
+                ["Manual","Kelly Criterion","Fractional Kelly","Numerical Optimization"],
+                index=0, key="dash_lev_method")
+            leverage = 1.0
+            kelly_fraction = 0.5
+            if leverage_method == "Manual":
+                leverage = st.slider("Leverage", 0.0, 5.0, 1.0, 0.1, key="dash_leverage")
+            elif leverage_method == "Fractional Kelly":
+                kelly_fraction = st.slider("Kelly Fraction", 0.1, 1.0, 0.5, 0.1, key="dash_kf")
+
+    # ── Run Simulation button ────────────────────────────────────────────────
+    if st.button("▶ Run Simulation", type="primary", use_container_width=True, key="dash_run"):
+        with st.spinner("Fetching asset data and running simulation..."):
+            _ad = fetch_asset_data(asset_type, asset, data_period)
+            if _ad:
+                _kr = calculate_kelly(_returns=_ad["returns"]["daily"],
+                                      risk_free_rate=risk_free_rate,
+                                      _asset_name=_ad["name"])
+                _lev = leverage
+                if leverage_method == "Kelly Criterion":
+                    _lev = _kr["full_kelly"]
+                elif leverage_method == "Fractional Kelly":
+                    _lev = _kr["full_kelly"] * kelly_fraction
+                elif leverage_method == "Numerical Optimization":
+                    _lev = _kr["optimal_leverage"]
+                if leverage_method != "Manual":
+                    st.info(f"Using {leverage_method} leverage: {_lev:.2f}x")
+                _res = run_simulation(_ad, model_type, investment_amount, time_horizon,
+                                      num_simulations, risk_free_rate, _lev, model_params)
+                if _res:
+                    _cg = ChartGenerator()
+                    st.session_state["_sim_result"]   = _res
+                    st.session_state["_asset_data"]   = _ad
+                    st.session_state["_leverage"]     = _lev
+                    st.session_state["_chart_gen"]    = _cg
+                    st.session_state["_kelly_result"] = _kr
+                    st.session_state["_hist_years"]   = historical_years
+                    st.session_state["_lev_method"]   = leverage_method
+                    st.session_state["_rf_rate"]      = risk_free_rate
+
+    # ── Dashboard results ────────────────────────────────────────────────────
+    if "_sim_result" in st.session_state:
+        result       = st.session_state["_sim_result"]
+        asset_data   = st.session_state["_asset_data"]
+        leverage     = st.session_state["_leverage"]
+        chart_gen    = st.session_state["_chart_gen"]
+        historical_years = st.session_state.get("_hist_years", 10)
+        leverage_method  = st.session_state.get("_lev_method", "Manual")
+
+        st.markdown(f'''<div class="sub-header">Analysis for: {asset_data["name"]}</div>''',
+                    unsafe_allow_html=True)
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Initial Investment", f"${result['investment_amount']:,.0f}")
+        col2.metric("Final Median Value",
+                    f"${result['stats']['median']:,.0f}",
+                    f"95% CI: ${result['stats']['percentiles']['5%']:,.0f} – "
+                    f"${result['stats']['percentiles']['95%']:,.0f}")
+        col3.metric("Median Annual Return",
+                    f"{result['stats']['cagr']['median']*100:.2f}%",
+                    f"95% CI: {result['stats']['cagr']['percentiles']['5%']*100:.2f}% – "
+                    f"{result['stats']['cagr']['percentiles']['95%']*100:.2f}%")
+        col4.metric("Leverage", f"{leverage:.2f}x")
+
+        st.subheader("Path Analysis")
+        bc = result['stats']['bust_counters']
+        bc1, bc2 = st.columns(2)
+        with bc1:
+            st.markdown("##### Underperforming Paths")
+            u1, u2 = st.columns(2)
+            u1.metric("Major Loss (>99%)", f"{bc['total_ruin']} paths",
+                      f"{bc['total_ruin_pct']*100:.2f}%", delta_color="inverse")
+            u1.caption(f"Final value below ${bc['ruin_threshold']:.2f}")
+            u2.metric("Below Initial Investment", f"{bc['below_initial']} paths",
+                      f"{bc['below_initial_pct']*100:.2f}%", delta_color="inverse")
+        with bc2:
+            st.markdown("##### Outperforming Paths")
+            o1, o2 = st.columns(2)
+            o1.metric("Above Initial Investment", f"{bc['above_initial']} paths",
+                      f"{bc['above_initial_pct']*100:.2f}%")
+            o2.metric("Above Benchmark", f"{bc['above_benchmark']} paths",
+                      f"{bc['above_benchmark_pct']*100:.2f}%")
+            o2.caption(f"{bc['benchmark_name']} (${bc['benchmark_value']:,.0f})")
+
+        st.subheader("Simulation Paths")
+        paths_fig = chart_gen.plot_simulation_paths(
+            result['paths'],
+            title=f"{asset_data['name']} Simulation Paths (Leverage: {leverage:.2f}x)",
+            num_paths=50
+        )
+        st.pyplot(paths_fig)
+
+        st.subheader("Distribution of Final Values")
+        dist_fig = chart_gen.plot_final_distribution(result)
+        st.pyplot(dist_fig)
+    else:
+        st.info("Configure parameters above and click **▶ Run Simulation** to start.")
+
+# ── Simulation Details tab ────────────────────────────────────────────────────
+with tab2:
+    if "_sim_result" in st.session_state:
+        result       = st.session_state["_sim_result"]
+        asset_data   = st.session_state["_asset_data"]
+        leverage     = st.session_state["_leverage"]
+        chart_gen    = st.session_state["_chart_gen"]
+        historical_years = st.session_state.get("_hist_years", 10)
+
+        st.markdown('<div class="sub-header">Historical Data Analysis</div>', unsafe_allow_html=True)
+        st.info(f"Analysis based on {historical_years} years of historical data")
+
+        hc1, hc2, hc3, hc4 = st.columns(4)
+        hc1.metric("Historical Annual Return",
+                   f"{asset_data['stats']['mean_annual']*100:.2f}%")
+        hc2.metric("Historical Volatility",
+                   f"{asset_data['stats']['std_annual']*100:.2f}%")
+        hc3.metric("Historical Sharpe Ratio",
+                   f"{asset_data['stats']['sharpe_ratio']:.2f}")
+        if 'max_drawdown' in asset_data['stats']:
+            hc4.metric("Historical Max Drawdown",
+                       f"{asset_data['stats']['max_drawdown']*100:.2f}%")
+
+        st.markdown('<div class="sub-header">Historical Price Performance</div>', unsafe_allow_html=True)
+        try:
+            fig, ax = plt.subplots(figsize=(12, 6))
+            ax.set_facecolor('#f8f9fa'); fig.patch.set_facecolor('#ffffff')
+            price_col   = 'Adj Close' if 'Adj Close' in asset_data['data'].columns else 'Close'
+            hist_dates  = asset_data['data'].index
+            hist_prices = asset_data['data'][price_col].values
+            ax.plot(hist_dates, hist_prices, label='Historical Price', color='#1E88E5', linewidth=2)
+            start_date  = hist_dates[-1]; last_price = hist_prices[-1]
+            sim_d = {}
+            if isinstance(result['paths'], pd.DataFrame):
+                sim_dates      = result['paths'].index.tolist()
+                sim_d['median'] = result['paths'].median(axis=1).values
+                sim_d['mean']   = result['paths'].mean(axis=1).values
+                sim_d['p5']     = result['paths'].quantile(0.05, axis=1).values
+                sim_d['p95']    = result['paths'].quantile(0.95, axis=1).values
+            else:
+                sim_dates      = [start_date + pd.Timedelta(days=i*365.25/252)
+                                  for i in range(result['paths'].shape[1])]
+                sim_d['median'] = np.median(result['paths'], axis=0)
+                sim_d['mean']   = np.mean(result['paths'], axis=0)
+                sim_d['p5']     = np.percentile(result['paths'], 5, axis=0)
+                sim_d['p95']    = np.percentile(result['paths'], 95, axis=0)
+            mn = min(len(sim_dates), *[len(v) for v in sim_d.values()])
+            sim_dates = sim_dates[:mn]
+            for k in sim_d: sim_d[k] = sim_d[k][:mn]
+            sf = last_price / result['investment_amount']
+            ax.plot(sim_dates, sim_d['median']*sf, color='#0277BD', linestyle='--',
+                    linewidth=2, label='Simulation Median')
+            ax.plot(sim_dates, sim_d['mean']*sf, color='#26A69A', linestyle=':',
+                    linewidth=2, label='Simulation Mean')
+            ax.fill_between(sim_dates, sim_d['p5']*sf, sim_d['p95']*sf,
+                            color='#90CAF9', alpha=0.3, label='90% CI')
+            ax.grid(True, linestyle='-', alpha=0.2)
+            for sp in ax.spines.values(): sp.set_edgecolor('#cccccc')
+            ax.set_title(f"{asset_data['name']} Historical Price with Simulation Projections", fontsize=14)
+            ax.set_ylabel('Price ($)', fontsize=12); ax.set_xlabel('Date', fontsize=12)
+            ax.annotate('Simulation begins →', xy=(start_date, last_price),
+                        xytext=(-100,30), textcoords='offset points',
+                        arrowprops=dict(arrowstyle='->', color='#0277BD', lw=1.5),
+                        fontsize=10, color='#0277BD')
+            ax.legend(loc='upper left', framealpha=0.9)
+        except Exception as e:
+            st.error(f"Error creating historical price chart: {e}")
+            fig, ax = plt.subplots(figsize=(12, 6))
+            ax.text(0.5, 0.5, "Chart could not be rendered.", ha='center', va='center', fontsize=14)
+        st.pyplot(fig)
+
+        st.markdown('<div class="sub-header">Simulation Statistics</div>', unsafe_allow_html=True)
+        sc1, sc2 = st.columns(2)
+        with sc1:
+            st.markdown("#### Value Statistics")
+            st.markdown(f"""
+- **Median Value**: ${result['stats']['median']:,.2f}
+- **Mean Value**: ${result['stats']['mean']:,.2f}
+- **Minimum Value**: ${result['stats']['min']:,.2f}
+- **Maximum Value**: ${result['stats']['max']:,.2f}
+- **Standard Deviation**: ${result['stats']['std']:,.2f}
+""")
+            st.markdown("#### Percentiles")
+            st.markdown(f"""
+- **5th Percentile**: ${result['stats']['percentiles']['5%']:,.2f}
+- **25th Percentile**: ${result['stats']['percentiles']['25%']:,.2f}
+- **50th Percentile**: ${result['stats']['percentiles']['50%']:,.2f}
+- **75th Percentile**: ${result['stats']['percentiles']['75%']:,.2f}
+- **95th Percentile**: ${result['stats']['percentiles']['95%']:,.2f}
+""")
+        with sc2:
+            st.markdown("#### Risk Metrics")
+            st.markdown(f"""
+- **Median CAGR**: {result['stats']['cagr']['median']*100:.2f}%
+- **Mean CAGR**: {result['stats']['cagr']['mean']*100:.2f}%
+- **5th Pct CAGR**: {result['stats']['cagr']['percentiles']['5%']*100:.2f}%
+- **95th Pct CAGR**: {result['stats']['cagr']['percentiles']['95%']*100:.2f}%
+""")
+            st.markdown("#### Drawdown Risk")
+            st.markdown(f"""
+- **Median Max Drawdown**: {result['stats']['max_drawdown']['median']*100:.2f}%
+- **Mean Max Drawdown**: {result['stats']['max_drawdown']['mean']*100:.2f}%
+- **Maximum Drawdown**: {result['stats']['max_drawdown']['max']*100:.2f}%
+""")
+            st.markdown(f"**Probability of Major Loss (>99%)**: "
+                        f"{result['stats']['ruin_probability']*100:.2f}%")
+
+        st.markdown('<div class="sub-header">Sharpe Ratio Comparison</div>', unsafe_allow_html=True)
+        sh1, sh2, sh3, sh4 = st.columns(4)
+        hist_sharpe = asset_data['stats']['sharpe_ratio']
+        sim_med_sh  = result['stats']['sharpe_ratio']['median']
+        sim_mn_sh   = result['stats']['sharpe_ratio']['mean']
+        sh_p5       = result['stats']['sharpe_ratio']['percentiles']['5%']
+        sh_p95      = result['stats']['sharpe_ratio']['percentiles']['95%']
+        sh1.metric("Historical Sharpe",   f"{hist_sharpe:.2f}")
+        sh2.metric("Sim Median Sharpe",   f"{sim_med_sh:.2f}", f"{sim_med_sh-hist_sharpe:.2f}")
+        sh3.metric("Sim Mean Sharpe",     f"{sim_mn_sh:.2f}",  f"{sim_mn_sh-hist_sharpe:.2f}")
+        sh4.metric("Sim Sharpe (95% CI)", f"{sh_p5:.2f} – {sh_p95:.2f}")
+
+        fig2, ax2 = plt.subplots(figsize=(10, 5))
+        ax2.set_facecolor('#f8f9fa'); fig2.patch.set_facecolor('#ffffff')
+        bars = ax2.bar(['Historical','Sim Median','Sim Mean'],
+                       [hist_sharpe, sim_med_sh, sim_mn_sh],
+                       color=['#1E88E5','#26A69A','#AB47BC'], width=0.5)
+        for b in bars:
+            h = b.get_height()
+            ax2.text(b.get_x()+b.get_width()/2, h+0.05, f'{h:.2f}',
+                     ha='center', va='bottom', color='#333333')
+        ax2.errorbar(1, sim_med_sh,
+                     yerr=[[sim_med_sh-sh_p5],[sh_p95-sim_med_sh]],
+                     fmt='o', color='#0277BD', capsize=10, capthick=2)
+        ax2.set_title('Sharpe Ratio Comparison', fontsize=14)
+        ax2.set_ylabel('Sharpe Ratio')
+        ax2.grid(True, alpha=0.2, linestyle='-')
+        for sp in ax2.spines.values(): sp.set_color('#cccccc'); sp.set_linewidth(0.8)
+        ax2.annotate(f"Note: reflects {leverage:.1f}x leverage",
+                     xy=(0.98,0.02), xycoords='axes fraction', ha='right', va='bottom',
+                     fontsize=10, style='italic')
+        st.pyplot(fig2)
+
+        if 'model_parameters' in result:
+            st.markdown('<div class="sub-header">Model Parameters</div>', unsafe_allow_html=True)
+            st.json(result['model_parameters'])
+    else:
+        st.info("▶ Run a simulation from the **Dashboard** tab first.")
+
+# ── Kelly Analysis tab ────────────────────────────────────────────────────────
+with tab3:
+    if "_sim_result" in st.session_state:
+        result       = st.session_state["_sim_result"]
+        asset_data   = st.session_state["_asset_data"]
+        leverage     = st.session_state["_leverage"]
+        chart_gen    = st.session_state["_chart_gen"]
+        kelly_result = st.session_state.get("_kelly_result")
+        risk_free_rate = st.session_state.get("_rf_rate", 0.02)
+
+        st.markdown('<div class="sub-header">Kelly Criterion Analysis</div>', unsafe_allow_html=True)
+        if kelly_result is None:
+            kelly_result = calculate_kelly(_returns=asset_data['returns']['daily'],
+                                           risk_free_rate=risk_free_rate,
+                                           _asset_name=asset_data['name'])
+
+        kc1, kc2, kc3 = st.columns(3)
+        kc1.metric("Full Kelly Leverage",         f"{kelly_result['full_kelly']:.2f}x")
+        kc2.metric("Half Kelly Leverage",         f"{kelly_result['full_kelly']/2:.2f}x")
+        kc3.metric("Optimal Leverage (Numerical)",f"{kelly_result['optimal_leverage']:.2f}x")
+
+        st.markdown('<div class="sub-header">Kelly Criterion Growth Curve</div>', unsafe_allow_html=True)
+        kelly_fig = chart_gen.plot_kelly_curve(
+            kelly_result['leverage_curve'][0],
+            kelly_result['leverage_curve'][1],
+            kelly_result['leverage_curve'][2]
+        )
+        st.plotly_chart(kelly_fig, use_container_width=True)
+
+        st.markdown('<div class="sub-header">Understanding the Kelly Criterion</div>', unsafe_allow_html=True)
+        kelly_tt  = financial_tooltip("Kelly Criterion",
+            "A mathematical formula to determine the optimal investment size to maximize long-term growth.")
+        lev_tt    = financial_tooltip("leverage",
+            "Using borrowed capital to increase potential returns.")
+        logu_tt   = financial_tooltip("logarithmic utility",
+            "Investor satisfaction from wealth — increases at a decreasing rate with wealth.")
+        geom_tt   = financial_tooltip("geometric growth rate",
+            "The compound growth rate accounting for compounding effects over time.")
+        ruin_tt   = financial_tooltip("probability of ruin",
+            "The likelihood of losing all or nearly all capital.")
+        fkelly_tt = financial_tooltip("Fractional Kelly",
+            "Using a fraction (e.g. 50%) of the Kelly-suggested allocation to reduce risk.")
+        st.markdown(f"""
+The {kelly_tt} maximises long-run log wealth. Formula: **f\* = (μ - r) / σ²**
+
+Where **f\*** = optimal {lev_tt}, **μ** = expected return, **r** = risk-free rate, **σ²** = variance.
+
+**Key properties:**
+1. Maximises {logu_tt} → highest expected {geom_tt}
+2. No {ruin_tt} when strictly followed
+3. More or less than Kelly underperforms long-run
+
+Many investors use **{fkelly_tt}** (e.g. Half Kelly) for a smoother ride.
+""", unsafe_allow_html=True)
+    else:
+        st.info("▶ Run a simulation from the **Dashboard** tab first.")
+
 # Use Cases tab content
-with tab5:
+with tab6:
     # Load and display the use cases markdown file with path handling for different environments
     try:
         # Try direct path first (for deployed environments)
@@ -1633,7 +1137,7 @@ with tab5:
     st.markdown(use_cases_content)
 
 # About Models tab content
-with tab6:
+with tab7:
     st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
     
     # Create expanders for each model
@@ -1744,35 +1248,9 @@ with tab6:
         This is an advanced, experimental approach to financial modeling inspired by quantum physics.
         """)
 
-# Only show error messages if Run Simulation was clicked
-if "result" not in locals() and "run_button_clicked" in locals() and run_button_clicked:
-    st.error("Failed to run simulation. Please check the parameters and try again.")
-
-# This section has been removed to eliminate redundancy
-
-# Initial message if simulation hasn't been run
-if "result" not in locals():
-    st.info("Adjust the parameters in the sidebar and click 'Run Simulation' to start.")
-    
-    # Show explanation in the About Models tab
-    with tab6:
-        st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
-        
-        st.markdown("""
-        This application provides several mathematical models for simulating asset returns:
-        
-        1. **Standard Monte Carlo**: Simple sampling from a normal distribution
-        2. **Geometric Brownian Motion (GBM)**: The classic continuous-time model for asset prices
-        3. **GARCH(1,1)**: Captures volatility clustering and time-varying volatility
-        4. **Markov Chain**: Models regime-switching behavior using discrete states
-        5. **Feynman Path Integral**: Quantum-inspired approach for complex market dynamics
-        
-        Each model has different assumptions and is suitable for different market conditions.
-        Select a model from the sidebar and click "Run Simulation" to see detailed explanations.
-        """)
 
 # Kelly Game tab content
-with tab7:
+with tab8:
     # Create two columns for better organization: game controls on left, game display on right
     game_col1, game_col2 = st.columns([1, 3])
     
@@ -2124,7 +1602,7 @@ with tab4:
                 st.error(f"Portfolio simulation error: {e}")
 
 # Portfolio Optimizer tab
-with tab8:
+with tab5:
     portfolio_optimizer_tab()
 
 # About the Author Section
