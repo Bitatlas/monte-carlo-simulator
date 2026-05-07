@@ -443,85 +443,101 @@ st.markdown('<div style="font-size: 1.2rem; margin-bottom: 1rem;">📈 Multi-Ass
 
 with st.expander("📚 How to Use & Mathematical Background", expanded=False):
     st.markdown("""
-    ### How to Use This Simulator
-    
-    1. **Select Asset & Parameters**: Choose an asset type, specific asset, and historical data period in the sidebar
-    2. **Set Investment Parameters**: Specify initial investment amount and time horizon
-    3. **Choose Model**: Select from different mathematical models (each with different assumptions)
-    4. **Set Leverage Method**: Choose how leverage is determined (manual, Kelly criterion, etc.)
-    5. **Run Simulation**: Click the button to generate thousands of possible future scenarios
-    6. **Analyze Results**: Examine statistics, charts, and risk metrics across all simulation tabs
-    
-    ### What is Monte Carlo Simulation?
-    
-    A Monte Carlo simulation is like rolling dice thousands of times to see what might happen. Instead of just making one prediction about the future, we create thousands of possible scenarios based on historical patterns. This helps us understand not just what *might* happen, but how *likely* different outcomes are.
-    
-    Think of it like this: If you want to know your chances of getting to your destination on time, you could check a single traffic report. But a Monte Carlo simulation would be like running through thousands of commute scenarios with different traffic patterns, weather conditions, and departure times to give you a complete picture of possible outcomes.
-    
-    ### Mathematical Background
-    
-    #### Return Calculation
-    - **Simple Returns**: $R_t = \\frac{P_t - P_{t-1}}{P_{t-1}}$
-      * *In plain English*: The percentage change in price from one day to the next. If a stock goes from $100 to $110, that's a 10% return.
-    
-    - **Log Returns**: $r_t = \\ln(\\frac{P_t}{P_{t-1}})$
-      * *In plain English*: A special way of calculating returns that works better for mathematical models. They're slightly smaller than simple returns but have useful statistical properties.
-    
-    - **Annualized Return**: $R_{annual} = (1 + R)^{252} - 1$ (assuming 252 trading days)
-      * *In plain English*: What your return would be over a full year if the current rate continued. Like saying "at this pace, you'd make X% per year."
-    
-    #### Risk Measures
-    - **Volatility**: $\\sigma = \\sqrt{\\frac{\\sum_{i=1}^{n}(r_i - \\bar{r})^2}{n-1}}$
-      * *In plain English*: How much prices bounce around. Higher volatility means more dramatic price swings and typically more risk. Like measuring the bumpiness of a road.
-    
-    - **CAGR**: $CAGR = (\\frac{FV}{PV})^{\\frac{1}{n}} - 1$
-      * *In plain English*: The smoothed-out yearly growth rate. If $10,000 becomes $16,105 after 5 years, the CAGR is 10% (because $10,000 × 1.10⁵ = $16,105).
-    
-    - **Maximum Drawdown**: $MaxDD = \\max_t\\{1 - \\frac{V_t}{\\max_{s \\leq t}V_s}\\}$
-      * *In plain English*: The worst peak-to-trough decline you would have experienced. Like watching your $1,000 investment drop to $600 before recovering - that's a 40% drawdown.
-    
-    - **Sharpe Ratio**: $Sharpe = \\frac{R_p - R_f}{\\sigma_p}$
-      * *In plain English*: Return per unit of risk - higher is better. Like miles per gallon for your investment. A Sharpe ratio of 1.0 means you're getting 1% of extra return for each 1% of volatility you accept.
-    
-    #### Simulation Models
-    Most models simulate price paths using the formula:
-    $S_{t+1} = S_t \\cdot (1 + R_t)$
-    
-    Where $R_t$ is generated according to the specific model's assumptions:
-    
-    - **Monte Carlo**: $R_t \\sim N(\\mu, \\sigma^2)$
-      * *In plain English*: Imagine repeatedly flipping a weighted coin where the odds match historical returns. Each flip is completely independent of previous flips.
-    
-    - **GBM**: $\\frac{dS}{S} = \\mu dt + \\sigma dW_t$
-      * *In plain English*: Like a random walk where each step depends partly on where you currently stand. The bigger your investment grows, the larger the dollar swings (while percentage swings stay similar).
-    
-    - **GARCH**: Time-varying volatility where $\\sigma_t^2 = \\omega + \\alpha \\epsilon_{t-1}^2 + \\beta \\sigma_{t-1}^2$
-      * *In plain English*: Models periods of calm followed by periods of turbulence, similar to how real markets behave. When markets get volatile, they tend to stay volatile for a while.
-    
-    #### Kelly Criterion
-    The optimal leverage that maximizes long-term growth:
-    $f^* = \\frac{\\mu - r}{\\sigma^2}$
-    
-    Where:
-    - $f^*$ is the optimal leverage
-    - $\\mu$ is the expected return
-    - $r$ is the risk-free rate
-    - $\\sigma^2$ is the variance of returns
-    
-    **Kelly Criterion Made Simple**:
-    The Kelly Criterion helps find the "sweet spot" for investment sizing:
-    - Too little invested = leaving money on the table
-    - Too much invested = risk of ruin
-    - Kelly finds the optimal middle ground for long-term growth
+    ## Platform Overview — 8 Tabs
 
-    It's like driving a car - go too slow and you'll never reach your destination quickly, go too fast and you risk a crash. Kelly finds the speed that gets you there fastest on average.
-    
+    | Tab | Purpose |
+    |-----|---------|
+    | 📊 **Dashboard** | Configure all parameters, run a single-asset simulation, view headline results |
+    | 🔬 **Simulation Details** | Deep-dive statistics, historical price chart with projections, Sharpe comparison |
+    | 📈 **Kelly Analysis** | Optimal leverage, Kelly growth curve, Full / Half / Numerical Kelly |
+    | 🗂️ **Portfolio Simulator** | 2–3 asset correlated simulation with rebalancing & DCA |
+    | 🔍 **Portfolio Optimizer** | Exhaustive Kelly + MPT ranking across asset universes |
+    | 🛠️ **Use Cases** | Practical guided scenarios (retirement, stress testing, advising…) |
+    | ℹ️ **About Models** | Full model documentation, formulas, and when to use each |
+    | 🎮 **Kelly Game** | Interactive game — learn Kelly Criterion by playing with real data |
+
+    ---
+
+    ## How to Run a Simulation (Dashboard)
+
+    1. **Expand ⚙️ Simulation Parameters** — four columns:
+       - **Asset** — pick type (Equity Index, Stock, ETF, Bond), select the specific asset, set historical lookback years
+       - **Investment** — initial capital, time horizon (1–30 yr), risk-free rate
+       - **Model** — choose from 5 stochastic models; optional model-specific parameters appear automatically
+       - **Leverage** — Manual / Kelly Criterion / Fractional Kelly / Numerical Optimization
+    2. **Click ▶ Run Simulation** — results persist as you switch tabs
+    3. **Switch to other tabs** to explore deeper statistics, Kelly analysis, and model parameters
+
+    ---
+
+    ## How to Use the Portfolio Simulator
+
+    1. Choose 2 or 3 assets and set weights (auto-normalised to 100%)
+    2. Set investment amount, time horizon, simulations, and data years
+    3. Optionally enable **Rebalancing** (monthly / quarterly / annually) + transaction cost
+    4. Optionally enable **DCA** (Dollar-Cost Averaging) — fixed contribution each month or quarter
+    5. Click ▶ Run Portfolio Simulation — get correlated paths, correlation matrix, and Portfolio Kelly analysis
+
+    ---
+
+    ## How to Use the Portfolio Optimizer
+
+    1. Select a **preset universe** (US Large Cap, ETFs, Global, Bonds, Commodities, Factor, Thematic, Balanced Mix)
+       or enter custom tickers
+    2. Choose **portfolio size** (2, 3, or 4 assets)
+    3. Set lookback period and risk-free rate
+    4. Click **Run Optimizer** — every N-choose-K combination is ranked by Diversification Bonus, Portfolio Kelly, and Sharpe
+
+    ---
+
+    ## Mathematical Background
+
+    ### Return Formulas
+    - **Simple Return**: $R_t = (P_t - P_{t-1}) / P_{t-1}$
+    - **Log Return**: $r_t = \\ln(P_t / P_{t-1})$ — additive over time; preferred for modelling
+    - **Annualised Return**: $(1 + R_{daily})^{252} - 1$
+
+    ### Risk Metrics
+    - **Volatility** $\\sigma$: standard deviation of daily log-returns × √252 (annualised)
+    - **CAGR**: $(FV / PV)^{1/T} - 1$ — the compound annual growth rate
+    - **Max Drawdown**: largest peak-to-trough decline; $\\max_t\\{1 - V_t / \\max_{s \\le t} V_s\\}$
+    - **Sharpe Ratio**: $(\\mu_p - r_f) / \\sigma_p$ — excess return per unit of risk
+    - **Ruin Probability**: fraction of paths ending below 1% of initial capital
+
+    ### Simulation Models
+    | Model | Core Formula | Key Feature |
+    |-------|-------------|-------------|
+    | 🎲 Monte Carlo | $r_t \\sim N(\\mu, \\sigma^2)$ | Fast baseline; constant volatility |
+    | 📉 GBM | $dS = \\mu S\\,dt + \\sigma S\\,dW_t$ | Log-normal prices; Black-Scholes foundation |
+    | 📊 GARCH(1,1) | $\\sigma_t^2 = \\omega + \\alpha\\varepsilon_{t-1}^2 + \\beta\\sigma_{t-1}^2$ | Volatility clustering; fat tails |
+    | ⛓️ Markov Chain | $P_{ij} = P(\\text{state}_j \\mid \\text{state}_i)$ | Regime switching (bull/bear/crash) |
+    | 🔄 Feynman Path | $K = \\int D[S]\\,e^{iS[\\text{path}]/\\hbar}$ | Quantum-inspired; path dependencies |
+
+    ### Kelly Criterion
+    The leverage $f^*$ that maximises expected log-growth $G(f) = f\\mu - \\tfrac{1}{2}f^2\\sigma^2$:
+
+    $$f^* = \\frac{\\mu - r_f}{\\sigma^2}$$
+
+    - $f^* > 1$ → borrow to invest (positive risk-premium justifies leverage)
+    - $f^* > 2$ → rare; implies very high Sharpe ratio
+    - Overbetting ($f > 2f^*$) → expected log-growth turns **negative** (ruin territory)
+    - **Half Kelly** ($f^*/2$): ~75% of max growth, ~50% of variance — institutional standard
+
+    **Portfolio Kelly (Nekrasov):**
+    $$K^* = (\\mu - r_f)^T \\Sigma^{-1} (\\mu - r_f)$$
+    **Diversification Bonus** = $K^* - \\max(f^*_i)$ — extra growth from combining low-correlation assets.
+
+    ---
+
     ### Practical Interpretation of Results
-    
-    - **Median Outcome**: The middle result - half of simulations did better, half did worse
-    - **Confidence Intervals**: Think of these as the "likely range" - not guaranteed, but probable
-    - **Maximum Drawdown**: The worst decline you might face - like planning for the worst storm that might hit your house
-    - **Probability of Major Loss**: The chance of losing a catastrophic amount (over 99% of initial investment)
+
+    | Metric | What it means in plain English |
+    |--------|-------------------------------|
+    | Median outcome | The middle result — half of simulations ended better, half worse |
+    | 5th–95th percentile band | Your "realistic range" — not guaranteed, but covers 90% of scenarios |
+    | Max Drawdown (mean) | The average worst decline you should expect to weather before recovering |
+    | Ruin Probability | Chance of losing almost everything — should be near 0% for any serious strategy |
+    | Diversification Bonus | Mathematical proof that combining low-correlation assets beats the best individual asset |
     """)
 
 # Sidebar: Reset Cache only
@@ -1138,115 +1154,18 @@ with tab6:
 
 # About Models tab content
 with tab7:
-    st.markdown('<div class="sub-header">About Simulation Models</div>', unsafe_allow_html=True)
-    
-    # Create expanders for each model
-    with st.expander("Standard Monte Carlo"):
-        st.markdown("""
-        **Standard Monte Carlo** simulates returns by randomly sampling from a normal distribution,
-        using the historical mean and standard deviation of returns. This is the simplest model but assumes
-        that returns are independent and identically distributed (i.i.d.) and follow a normal distribution.
-        
-        **Key Assumptions:**
-        - Returns follow a normal distribution
-        - Returns are independent from day to day
-        - Parameters (mean, volatility) remain constant
-        
-        **When to Use:**
-        - For simple, quick simulations
-        - When you believe markets are relatively efficient
-        - For educational purposes and basic planning
-        """)
-    
-    with st.expander("Geometric Brownian Motion (GBM)"):
-        st.markdown("""
-        **Geometric Brownian Motion** is a continuous-time stochastic process where the logarithm of the
-        asset price follows a Brownian motion with drift. This is the model underlying the Black-Scholes
-        options pricing formula.
-        
-        The GBM model is described by the stochastic differential equation:
-        
-        dS = μS dt + σS dW
-        
-        Where:
-        - S is the asset price
-        - μ is the drift (expected return)
-        - σ is the volatility
-        - dW is a Wiener process (Brownian motion)
-        
-        **Key Assumptions:**
-        - Returns are log-normally distributed
-        - Volatility is constant
-        - No autocorrelation in returns
-        
-        **When to Use:**
-        - For modeling most financial assets
-        - When you want a more theoretically sound model than simple Monte Carlo
-        - For options pricing and risk management
-        """)
-    
-    with st.expander("GARCH(1,1)"):
-        st.markdown("""
-        **GARCH (Generalized Autoregressive Conditional Heteroskedasticity)** models capture the fact that
-        volatility in financial markets tends to cluster (periods of high volatility tend to persist).
-        GARCH(1,1) is the simplest form, where current volatility depends on the previous period's
-        volatility and squared return.
-        
-        The GARCH(1,1) model is defined as:
-        
-        σ²ₜ = ω + α·r²ₜ₋₁ + β·σ²ₜ₋₁
-        
-        Where:
-        - σ²ₜ is the variance at time t
-        - r²ₜ₋₁ is the squared return in the previous period
-        - ω, α, β are parameters estimated from historical data
-        
-        **Key Advantages:**
-        - Captures volatility clustering
-        - More realistic risk estimates during turbulent markets
-        - Better suited for measuring tail risks
-        
-        **When to Use:**
-        - During periods of changing volatility
-        - For risk management in complex markets
-        - When you need more accurate Value-at-Risk (VaR) estimates
-        """)
-    
-    with st.expander("Markov Chain"):
-        st.markdown("""
-        **Markov Chain** models discretize returns into a finite number of states and use transition
-        probabilities between these states to generate future return sequences. This approach can capture
-        regime-switching behavior in markets.
-        
-        **Key Features:**
-        - Captures different market regimes (bull, bear, sideways)
-        - Models state persistence (tendency to stay in the same state)
-        - Can represent non-normal return distributions
-        
-        **When to Use:**
-        - When markets show distinct regimes
-        - For modeling assets with cyclical behavior
-        - When simple normal distribution assumptions are inadequate
-        """)
-    
-    with st.expander("Feynman Path Integral"):
-        st.markdown("""
-        **Feynman Path Integral** approaches, borrowed from quantum mechanics, treat asset price evolution
-        as a sum over all possible paths, weighted by an "action" function. This allows for more complex
-        dynamics and rare events.
-        
-        **Key Features:**
-        - Can model complex, non-Gaussian dynamics
-        - Better representation of extreme market events
-        - Accounts for path-dependency in price evolution
-        
-        **When to Use:**
-        - For sophisticated risk analysis
-        - When concerned about tail risks and black swan events
-        - For research into complex market dynamics
-        
-        This is an advanced, experimental approach to financial modeling inspired by quantum physics.
-        """)
+    try:
+        with open("model_interpretations.md", "r", encoding="utf-8") as _f:
+            _about_content = _f.read()
+    except FileNotFoundError:
+        try:
+            import os as _os
+            _cdir = _os.path.dirname(_os.path.abspath(__file__))
+            with open(_os.path.join(_cdir, "model_interpretations.md"), "r", encoding="utf-8") as _f:
+                _about_content = _f.read()
+        except FileNotFoundError:
+            _about_content = "# About Models\n\n*model_interpretations.md not found.*"
+    st.markdown(_about_content)
 
 
 # Kelly Game tab content
