@@ -426,26 +426,30 @@ def portfolio_optimizer_tab() -> None:
 
     col_neg, col_pos = st.columns(2)
     with col_neg:
-        st.subheader("📉 Most Negative Correlations")
-        neg10 = pairs_df.head(10)
+        st.subheader("📉 Best Diversifiers (Lowest Correlation)")
+        best10 = pairs_df.head(10)
+        neg_count = (pairs_df["Correlation"] < 0).sum()
         st.dataframe(
-            neg10.style
+            best10.style
                 .format({"Correlation": "{:.3f}"})
                 .background_gradient(subset=["Correlation"], cmap="RdYlGn_r"),
             hide_index=True, use_container_width=True,
         )
-        st.caption("💡 Negative pairs → maximum diversification bonus")
+        if neg_count > 0:
+            st.caption(f"💡 {neg_count} negatively correlated pair(s) found — these provide maximum diversification bonus")
+        else:
+            st.caption("💡 No negative correlations in this dataset — these are the least correlated pairs (still valuable for diversification)")
 
     with col_pos:
-        st.subheader("🔗 Lowest Positive Correlations")
-        low_pos = pairs_df[pairs_df["Correlation"] > 0].head(10)
+        st.subheader("🔗 Worst Diversifiers (Highest Correlation)")
+        worst10 = pairs_df.sort_values("Correlation", ascending=False).head(10)
         st.dataframe(
-            low_pos.style
+            worst10.style
                 .format({"Correlation": "{:.3f}"})
                 .background_gradient(subset=["Correlation"], cmap="RdYlGn_r"),
             hide_index=True, use_container_width=True,
         )
-        st.caption("💡 Low positive correlation also boosts the portfolio Kelly")
+        st.caption("⚠️ Highly correlated pairs offer little diversification benefit — combining them adds risk without reducing it")
 
     # ── SECTION 4: PORTFOLIO SEARCH ───────────────────────────────────────────
     st.markdown("---")
