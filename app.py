@@ -58,13 +58,30 @@ st.set_page_config(
 st.markdown("""
 <style>
     /* Modern sophisticated styling */
+    /* ── Semantic colour tokens ──────────────────────────────── */
+    :root {
+        --c-primary:  #1E88E5;   /* blue  — interactive / brand */
+        --c-positive: #26A69A;   /* teal  — gains / above-benchmark */
+        --c-caution:  #FFA726;   /* amber — moderate risk */
+        --c-danger:   #EF5350;   /* red   — losses / ruin */
+        --c-accent:   #7E57C2;   /* purple — Kelly peak / special */
+    }
+
     .main-header {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 1.2rem;
-        color: #1E88E5;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        font-size: 2.6rem;
+        font-weight: 800;
+        margin-bottom: 0.3rem;
+        background: linear-gradient(135deg, #1E88E5, #7E57C2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         letter-spacing: -0.5px;
+    }
+
+    .app-subtitle {
+        font-size: 1.0rem;
+        color: #888;
+        margin-bottom: 1.4rem;
+        letter-spacing: 0.2px;
     }
     
     .sub-header {
@@ -159,15 +176,16 @@ st.markdown("""
     /* Enhanced button styling */
     .stButton>button {
         background-color: #1E88E5;
-        background-image: linear-gradient(135deg, #1E88E5, #1976D2);
+        background-image: linear-gradient(135deg, #1E88E5, #7E57C2);
         color: white;
         border: none;
-        border-radius: 6px;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(30,136,229,0.35);
         transition: all 0.3s;
-        font-weight: 500;
-        letter-spacing: 0.3px;
-        padding: 0.5rem 1.2rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 0.65rem 1.4rem;
+        font-size: 1.0rem;
     }
     
     .stButton>button:hover {
@@ -243,7 +261,7 @@ st.markdown("""
     
     /* Card layout styling */
     .card {
-        background: white;
+        background: rgba(255,255,255,0.06);
         border-radius: 8px;
         padding: 1.5rem;
         box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -438,8 +456,10 @@ st.markdown("""
 logo_base64 = ""
 
 # Create app header with improved title and branding
-st.markdown('<div class="main-header">Henrique Wealth Academy OptiFolio Simulator</div>', unsafe_allow_html=True)
-st.markdown('<div style="font-size: 1.2rem; margin-bottom: 1rem;">📈 Multi-Asset Monte Carlo Simulator with Advanced Models</div>', unsafe_allow_html=True)
+st.markdown("""
+<div class="main-header">📈 OptiFolio Simulator</div>
+<div class="app-subtitle">Henrique Wealth Academy &nbsp;·&nbsp; Multi-Asset Monte Carlo &amp; Portfolio Optimizer</div>
+""", unsafe_allow_html=True)
 
 with st.expander("📚 How to Use & Mathematical Background", expanded=False):
     st.markdown("""
@@ -870,6 +890,7 @@ with tab1:
                     st.session_state["_hist_years"]   = historical_years
                     st.session_state["_lev_method"]   = leverage_method
                     st.session_state["_rf_rate"]      = risk_free_rate
+                    st.session_state["_model_label"]  = model_type
 
     # ── Dashboard results ────────────────────────────────────────────────────
     if "_sim_result" in st.session_state:
@@ -883,6 +904,20 @@ with tab1:
         st.markdown(f'''<div class="sub-header">Analysis for: {asset_data["name"]}</div>''',
                     unsafe_allow_html=True)
 
+        # ── Simulation Context Banner (tab1) ─────────────────────────────────
+        import datetime as _dt
+        _ctx_html = (
+            f'<div style="background:rgba(30,136,229,0.10);border:1px solid rgba(30,136,229,0.25);'
+            f'border-radius:8px;padding:8px 16px;margin-bottom:12px;font-size:0.88rem;color:inherit;">'
+            f'<b>\U0001f4ca {asset_data["name"]}</b>&nbsp;\u00b7&nbsp;'
+            f'\u2699\ufe0f {st.session_state.get("_model_label", "Monte Carlo")}&nbsp;\u00b7&nbsp;'
+            f'\U0001f4d0 {leverage:.2f}\u00d7 leverage&nbsp;\u00b7&nbsp;'
+            f'\U0001f550 {historical_years}yr data&nbsp;\u00b7&nbsp;'
+            f'\U0001f4c5 {_dt.date.today()}'
+            '</div>'
+        )
+        st.markdown(_ctx_html, unsafe_allow_html=True)
+
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Initial Investment", f"${result['investment_amount']:,.0f}")
         col2.metric("Final Median Value",
@@ -895,37 +930,170 @@ with tab1:
                     f"{result['stats']['cagr']['percentiles']['95%']*100:.2f}%")
         col4.metric("Leverage", f"{leverage:.2f}x")
 
-        st.subheader("Path Analysis")
+        st.markdown('<div class="sub-header">Path Analysis</div>', unsafe_allow_html=True)
         bc = result['stats']['bust_counters']
-        bc1, bc2 = st.columns(2)
-        with bc1:
-            st.markdown("##### Underperforming Paths")
-            u1, u2 = st.columns(2)
-            u1.metric("Major Loss (>99%)", f"{bc['total_ruin']} paths",
-                      f"{bc['total_ruin_pct']*100:.2f}%", delta_color="inverse")
-            u1.caption(f"Final value below ${bc['ruin_threshold']:.2f}")
-            u2.metric("Below Initial Investment", f"{bc['below_initial']} paths",
-                      f"{bc['below_initial_pct']*100:.2f}%", delta_color="inverse")
-        with bc2:
-            st.markdown("##### Outperforming Paths")
-            o1, o2 = st.columns(2)
-            o1.metric("Above Initial Investment", f"{bc['above_initial']} paths",
-                      f"{bc['above_initial_pct']*100:.2f}%")
-            o2.metric("Above Benchmark", f"{bc['above_benchmark']} paths",
-                      f"{bc['above_benchmark_pct']*100:.2f}%")
-            o2.caption(f"{bc['benchmark_name']} (${bc['benchmark_value']:,.0f})")
+        _n = result['paths'].shape[0] if hasattr(result['paths'], 'shape') else num_simulations
+        _ruin_pct  = bc['total_ruin_pct'] * 100
+        _below_pct = (bc['below_initial_pct'] - bc['total_ruin_pct']) * 100
+        _bench_pct = bc['above_benchmark_pct'] * 100
+        _above_pct = (bc['above_initial_pct'] - bc['above_benchmark_pct']) * 100
 
-        st.subheader("Simulation Paths")
-        paths_fig = chart_gen.plot_simulation_paths(
-            result['paths'],
-            title=f"{asset_data['name']} Simulation Paths (Leverage: {leverage:.2f}x)",
-            num_paths=50
+        # Summary sentence
+        st.markdown(
+            f"Of **{_n} simulated paths**: "
+            f"<span style='color:#EF5350;font-weight:600'>{bc['total_ruin_pct']*100:.1f}% ruin</span> · "
+            f"<span style='color:#FFA726;font-weight:600'>{(bc['below_initial_pct']-bc['total_ruin_pct'])*100:.1f}% below start</span> · "
+            f"<span style='color:#26A69A;font-weight:600'>{bc['above_initial_pct']*100:.1f}% profitable</span> · "
+            f"<span style='color:#7E57C2;font-weight:600'>{bc['above_benchmark_pct']*100:.1f}% beat {bc['benchmark_name']}</span>",
+            unsafe_allow_html=True
         )
-        st.pyplot(paths_fig)
 
-        st.subheader("Distribution of Final Values")
-        dist_fig = chart_gen.plot_final_distribution(result)
-        st.pyplot(dist_fig)
+        # Stacked horizontal bar
+        import plotly.graph_objects as _go_pa
+        _pa_fig = _go_pa.Figure()
+        _pa_fig.add_trace(_go_pa.Bar(
+            y=["Paths"], x=[_ruin_pct], name=f"Ruin (<1% left) {_ruin_pct:.1f}%",
+            orientation='h', marker_color='#EF5350',
+            hovertemplate=f"Ruin: {bc['total_ruin']} paths ({_ruin_pct:.1f}%)<extra></extra>"
+        ))
+        _pa_fig.add_trace(_go_pa.Bar(
+            y=["Paths"], x=[max(0,_below_pct)], name=f"Below initial {max(0,_below_pct):.1f}%",
+            orientation='h', marker_color='#FFA726',
+            hovertemplate=f"Below start: {bc['below_initial']-bc['total_ruin']} paths ({max(0,_below_pct):.1f}%)<extra></extra>"
+        ))
+        _pa_fig.add_trace(_go_pa.Bar(
+            y=["Paths"], x=[max(0,_above_pct)], name=f"Profitable {max(0,_above_pct):.1f}%",
+            orientation='h', marker_color='#26A69A',
+            hovertemplate=f"Profitable: {bc['above_initial']-bc['above_benchmark']} paths ({max(0,_above_pct):.1f}%)<extra></extra>"
+        ))
+        _pa_fig.add_trace(_go_pa.Bar(
+            y=["Paths"], x=[_bench_pct], name=f"Beat {bc['benchmark_name']} {_bench_pct:.1f}%",
+            orientation='h', marker_color='#7E57C2',
+            hovertemplate=f"Beat benchmark: {bc['above_benchmark']} paths ({_bench_pct:.1f}%)<extra></extra>"
+        ))
+        _pa_fig.update_layout(
+            barmode='stack', template='plotly_dark', height=120,
+            margin=dict(l=10, r=10, t=10, b=10),
+            legend=dict(orientation='h', y=-0.5, x=0),
+            xaxis=dict(range=[0,100], ticksuffix='%', showgrid=False),
+            yaxis=dict(showticklabels=False),
+            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)'
+        )
+        st.plotly_chart(_pa_fig, use_container_width=True)
+
+        st.markdown('<div class="sub-header">Simulation Paths — Fan Chart</div>', unsafe_allow_html=True)
+        import plotly.graph_objects as _go_fan
+        _paths = result['paths']
+        if hasattr(_paths, 'shape'):
+            _arr = _paths if not hasattr(_paths, 'values') else _paths.values
+            _xs = list(range(_arr.shape[1]))
+            _p5  = np.percentile(_arr, 5,  axis=0)
+            _p25 = np.percentile(_arr, 25, axis=0)
+            _p50 = np.percentile(_arr, 50, axis=0)
+            _p75 = np.percentile(_arr, 75, axis=0)
+            _p95 = np.percentile(_arr, 95, axis=0)
+        else:
+            _arr = _paths.values
+            _xs  = list(range(_arr.shape[1]))
+            _p5  = np.percentile(_arr, 5,  axis=0)
+            _p25 = np.percentile(_arr, 25, axis=0)
+            _p50 = np.percentile(_arr, 50, axis=0)
+            _p75 = np.percentile(_arr, 75, axis=0)
+            _p95 = np.percentile(_arr, 95, axis=0)
+
+        _fan = _go_fan.Figure()
+        # P5–P95 outer band
+        _fan.add_trace(_go_fan.Scatter(
+            x=_xs + _xs[::-1], y=list(_p95) + list(_p5[::-1]),
+            fill='toself', fillcolor='rgba(30,136,229,0.10)',
+            line=dict(color='rgba(0,0,0,0)'), name='P5–P95 (90% CI)',
+            hoverinfo='skip'
+        ))
+        # P25–P75 inner band
+        _fan.add_trace(_go_fan.Scatter(
+            x=_xs + _xs[::-1], y=list(_p75) + list(_p25[::-1]),
+            fill='toself', fillcolor='rgba(30,136,229,0.22)',
+            line=dict(color='rgba(0,0,0,0)'), name='P25–P75 (IQR)',
+            hoverinfo='skip'
+        ))
+        # P5 line
+        _fan.add_trace(_go_fan.Scatter(x=_xs, y=_p5, mode='lines',
+            line=dict(color='#EF5350', width=1.2, dash='dot'), name='P5 (worst 5%)'))
+        # P95 line
+        _fan.add_trace(_go_fan.Scatter(x=_xs, y=_p95, mode='lines',
+            line=dict(color='#26A69A', width=1.2, dash='dot'), name='P95 (best 5%)'))
+        # Median
+        _fan.add_trace(_go_fan.Scatter(x=_xs, y=_p50, mode='lines',
+            line=dict(color='#FFA726', width=2.5), name='Median (P50)'))
+        # Starting value reference
+        _fan.add_hline(y=result['investment_amount'], line_dash='dash', line_color='#888',
+                       annotation_text='Initial', annotation_position='right')
+        _fan.update_layout(
+            title=f"{asset_data['name']} — Simulation Fan Chart ({leverage:.2f}× leverage)",
+            xaxis_title='Trading Days', yaxis_title='Portfolio Value ($)',
+            template='plotly_dark', height=460,
+            margin=dict(l=40, r=40, t=60, b=40),
+            legend=dict(orientation='h', y=-0.15),
+            yaxis=dict(tickprefix='$', tickformat=',.0f'),
+            hovermode='x unified'
+        )
+        st.plotly_chart(_fan, use_container_width=True)
+
+        st.markdown('<div class="sub-header">Distribution of Final Values</div>', unsafe_allow_html=True)
+        import plotly.graph_objects as _go_dist
+        from scipy.stats import gaussian_kde as _kde
+        _finals = result['final_values'] if 'final_values' in result else (
+            _arr[:, -1] if '_arr' in dir() else np.array([]))
+        if len(_finals) == 0 and hasattr(result['paths'], 'shape'):
+            _tmp = result['paths']
+            _finals = (_tmp.values if hasattr(_tmp, 'values') else _tmp)[:, -1]
+        if len(_finals) > 0:
+            _med_f  = float(np.median(_finals))
+            _p5_f   = float(np.percentile(_finals, 5))
+            _p95_f  = float(np.percentile(_finals, 95))
+            _kde_fn = _kde(_finals)
+            _xrng   = np.linspace(_finals.min(), _finals.max(), 300)
+            _yrng   = _kde_fn(_xrng)
+
+            _dist_fig = _go_dist.Figure()
+            # Left-tail shading (below P5) — red danger zone
+            _mask_l = _xrng <= _p5_f
+            _dist_fig.add_trace(_go_dist.Scatter(
+                x=_xrng[_mask_l], y=_yrng[_mask_l],
+                fill='tozeroy', fillcolor='rgba(239,83,80,0.25)',
+                line=dict(color='rgba(0,0,0,0)'), showlegend=False, hoverinfo='skip'
+            ))
+            # Main KDE curve
+            _dist_fig.add_trace(_go_dist.Scatter(
+                x=_xrng, y=_yrng, mode='lines',
+                line=dict(color='#1E88E5', width=2.5), name='Density (KDE)'
+            ))
+            # Histogram (normalised)
+            _dist_fig.add_trace(_go_dist.Histogram(
+                x=_finals, histnorm='probability density', nbinsx=60,
+                marker_color='rgba(30,136,229,0.18)',
+                marker_line=dict(color='rgba(30,136,229,0.4)', width=0.5),
+                name='Simulated outcomes', showlegend=True
+            ))
+            # Annotation lines
+            for _val, _lbl, _col in [(_p5_f, 'P5', '#EF5350'),
+                                     (_med_f, 'Median', '#FFA726'),
+                                     (_p95_f, 'P95', '#26A69A')]:
+                _dist_fig.add_vline(x=_val, line_dash='dash', line_color=_col,
+                    annotation_text=f"{_lbl}<br>${_val:,.0f}",
+                    annotation_font_color=_col, annotation_position='top')
+            # Initial investment line
+            _dist_fig.add_vline(x=result['investment_amount'], line_dash='dot', line_color='#888',
+                annotation_text='Initial', annotation_position='bottom right')
+            _dist_fig.update_layout(
+                title='Distribution of Final Portfolio Values',
+                xaxis_title='Final Value ($)', yaxis_title='Density',
+                template='plotly_dark', height=400, barmode='overlay',
+                margin=dict(l=40, r=40, t=60, b=40),
+                xaxis=dict(tickprefix='$', tickformat=',.0f'),
+                legend=dict(orientation='h', y=-0.15)
+            )
+            st.plotly_chart(_dist_fig, use_container_width=True)
     else:
         st.info("Configure parameters above and click **▶ Run Simulation** to start.")
 
@@ -937,6 +1105,17 @@ with tab2:
         leverage     = st.session_state["_leverage"]
         chart_gen    = st.session_state["_chart_gen"]
         historical_years = st.session_state.get("_hist_years", 10)
+
+        # ── Context Banner ────────────────────────────────────────────────────
+        _ctx2 = (
+            f'<div style="background:rgba(30,136,229,0.10);border:1px solid rgba(30,136,229,0.25);'
+            f'border-radius:8px;padding:8px 16px;margin-bottom:12px;font-size:0.88rem;color:inherit;">'
+            f'<b>📊 {asset_data["name"]}</b>&nbsp;·&nbsp;'
+            f'⚙️ {st.session_state.get("_model_label","Monte Carlo")}&nbsp;·&nbsp;'
+            f'📐 {leverage:.2f}× leverage'
+            '</div>'
+        )
+        st.markdown(_ctx2, unsafe_allow_html=True)
 
         st.markdown('<div class="sub-header">Historical Data Analysis</div>', unsafe_allow_html=True)
         st.info(f"Analysis based on {historical_years} years of historical data")
@@ -954,120 +1133,150 @@ with tab2:
 
         st.markdown('<div class="sub-header">Historical Price Performance</div>', unsafe_allow_html=True)
         try:
-            fig, ax = plt.subplots(figsize=(12, 6))
-            ax.set_facecolor('#f8f9fa'); fig.patch.set_facecolor('#ffffff')
-            price_col   = 'Adj Close' if 'Adj Close' in asset_data['data'].columns else 'Close'
-            hist_dates  = asset_data['data'].index
-            hist_prices = asset_data['data'][price_col].values
-            ax.plot(hist_dates, hist_prices, label='Historical Price', color='#1E88E5', linewidth=2)
-            start_date  = hist_dates[-1]; last_price = hist_prices[-1]
-            sim_d = {}
+            import plotly.graph_objects as _go_hist
+            _price_col  = 'Adj Close' if 'Adj Close' in asset_data['data'].columns else 'Close'
+            _hist_dates = asset_data['data'].index.tolist()
+            _hist_px    = asset_data['data'][_price_col].values
+            _last_px    = float(_hist_px[-1])
+            _inv_amt    = float(result['investment_amount'])
+            _sf         = _last_px / _inv_amt  # scale factor from sim-$ to price
+
+            _hfig = _go_hist.Figure()
+            # Historical price
+            _hfig.add_trace(_go_hist.Scatter(
+                x=_hist_dates, y=_hist_px, mode='lines',
+                line=dict(color='#1E88E5', width=2), name='Historical Price'
+            ))
+            # Simulation projections
             if isinstance(result['paths'], pd.DataFrame):
-                sim_dates      = result['paths'].index.tolist()
-                sim_d['median'] = result['paths'].median(axis=1).values
-                sim_d['mean']   = result['paths'].mean(axis=1).values
-                sim_d['p5']     = result['paths'].quantile(0.05, axis=1).values
-                sim_d['p95']    = result['paths'].quantile(0.95, axis=1).values
+                _sdates = result['paths'].index.tolist()
+                _smed   = result['paths'].median(axis=1).values * _sf
+                _smn    = result['paths'].mean(axis=1).values * _sf
+                _sp5    = result['paths'].quantile(0.05, axis=1).values * _sf
+                _sp95   = result['paths'].quantile(0.95, axis=1).values * _sf
             else:
-                sim_dates      = [start_date + pd.Timedelta(days=i*365.25/252)
-                                  for i in range(result['paths'].shape[1])]
-                sim_d['median'] = np.median(result['paths'], axis=0)
-                sim_d['mean']   = np.mean(result['paths'], axis=0)
-                sim_d['p5']     = np.percentile(result['paths'], 5, axis=0)
-                sim_d['p95']    = np.percentile(result['paths'], 95, axis=0)
-            mn = min(len(sim_dates), *[len(v) for v in sim_d.values()])
-            sim_dates = sim_dates[:mn]
-            for k in sim_d: sim_d[k] = sim_d[k][:mn]
-            sf = last_price / result['investment_amount']
-            ax.plot(sim_dates, sim_d['median']*sf, color='#0277BD', linestyle='--',
-                    linewidth=2, label='Simulation Median')
-            ax.plot(sim_dates, sim_d['mean']*sf, color='#26A69A', linestyle=':',
-                    linewidth=2, label='Simulation Mean')
-            ax.fill_between(sim_dates, sim_d['p5']*sf, sim_d['p95']*sf,
-                            color='#90CAF9', alpha=0.3, label='90% CI')
-            ax.grid(True, linestyle='-', alpha=0.2)
-            for sp in ax.spines.values(): sp.set_edgecolor('#cccccc')
-            ax.set_title(f"{asset_data['name']} Historical Price with Simulation Projections", fontsize=14)
-            ax.set_ylabel('Price ($)', fontsize=12); ax.set_xlabel('Date', fontsize=12)
-            ax.annotate('Simulation begins →', xy=(start_date, last_price),
-                        xytext=(-100,30), textcoords='offset points',
-                        arrowprops=dict(arrowstyle='->', color='#0277BD', lw=1.5),
-                        fontsize=10, color='#0277BD')
-            ax.legend(loc='upper left', framealpha=0.9)
-        except Exception as e:
-            st.error(f"Error creating historical price chart: {e}")
-            fig, ax = plt.subplots(figsize=(12, 6))
-            ax.text(0.5, 0.5, "Chart could not be rendered.", ha='center', va='center', fontsize=14)
-        st.pyplot(fig)
+                import pandas as _pd2
+                _start = _hist_dates[-1]
+                _sdates = [_start + _pd2.Timedelta(days=i*365.25/252)
+                           for i in range(result['paths'].shape[1])]
+                _smed  = np.median(result['paths'], axis=0) * _sf
+                _smn   = np.mean(result['paths'], axis=0) * _sf
+                _sp5   = np.percentile(result['paths'], 5,  axis=0) * _sf
+                _sp95  = np.percentile(result['paths'], 95, axis=0) * _sf
+            _mn2 = min(len(_sdates), len(_smed))
+            _sdates = _sdates[:_mn2]
+            _smed = _smed[:_mn2]; _smn = _smn[:_mn2]
+            _sp5  = _sp5[:_mn2];  _sp95 = _sp95[:_mn2]
+
+            # 90% CI band
+            _hfig.add_trace(_go_hist.Scatter(
+                x=_sdates + _sdates[::-1],
+                y=list(_sp95) + list(_sp5[::-1]),
+                fill='toself', fillcolor='rgba(30,136,229,0.12)',
+                line=dict(color='rgba(0,0,0,0)'), name='90% CI', hoverinfo='skip'
+            ))
+            _hfig.add_trace(_go_hist.Scatter(
+                x=_sdates, y=_sp5, mode='lines',
+                line=dict(color='#EF5350', width=1, dash='dot'), name='P5'
+            ))
+            _hfig.add_trace(_go_hist.Scatter(
+                x=_sdates, y=_sp95, mode='lines',
+                line=dict(color='#26A69A', width=1, dash='dot'), name='P95'
+            ))
+            _hfig.add_trace(_go_hist.Scatter(
+                x=_sdates, y=_smed, mode='lines',
+                line=dict(color='#FFA726', width=2.2, dash='dash'), name='Sim Median'
+            ))
+            _hfig.add_trace(_go_hist.Scatter(
+                x=_sdates, y=_smn, mode='lines',
+                line=dict(color='#7E57C2', width=1.8, dash='dot'), name='Sim Mean'
+            ))
+            # Vertical "simulation begins" marker
+            _hfig.add_vline(x=str(_hist_dates[-1]), line_dash='dash', line_color='#888',
+                            annotation_text='Simulation begins →', annotation_position='top right')
+            _hfig.update_layout(
+                title=f"{asset_data['name']} — Historical Price & Simulation Projections",
+                xaxis_title='Date', yaxis_title='Price ($)',
+                template='plotly_dark', height=480,
+                margin=dict(l=40, r=40, t=60, b=40),
+                hovermode='x unified',
+                legend=dict(orientation='h', y=-0.15),
+                yaxis=dict(tickprefix='$', tickformat=',.2f')
+            )
+        except Exception as _e:
+            st.error(f"Error creating historical chart: {_e}")
+            _hfig = None
+        if _hfig: st.plotly_chart(_hfig, use_container_width=True)
 
         st.markdown('<div class="sub-header">Simulation Statistics</div>', unsafe_allow_html=True)
-        sc1, sc2 = st.columns(2)
-        with sc1:
-            st.markdown("#### Value Statistics")
-            st.markdown(f"""
-- **Median Value**: ${result['stats']['median']:,.2f}
-- **Mean Value**: ${result['stats']['mean']:,.2f}
-- **Minimum Value**: ${result['stats']['min']:,.2f}
-- **Maximum Value**: ${result['stats']['max']:,.2f}
-- **Standard Deviation**: ${result['stats']['std']:,.2f}
-""")
-            st.markdown("#### Percentiles")
-            st.markdown(f"""
-- **5th Percentile**: ${result['stats']['percentiles']['5%']:,.2f}
-- **25th Percentile**: ${result['stats']['percentiles']['25%']:,.2f}
-- **50th Percentile**: ${result['stats']['percentiles']['50%']:,.2f}
-- **75th Percentile**: ${result['stats']['percentiles']['75%']:,.2f}
-- **95th Percentile**: ${result['stats']['percentiles']['95%']:,.2f}
-""")
-        with sc2:
-            st.markdown("#### Risk Metrics")
-            st.markdown(f"""
-- **Median CAGR**: {result['stats']['cagr']['median']*100:.2f}%
-- **Mean CAGR**: {result['stats']['cagr']['mean']*100:.2f}%
-- **5th Pct CAGR**: {result['stats']['cagr']['percentiles']['5%']*100:.2f}%
-- **95th Pct CAGR**: {result['stats']['cagr']['percentiles']['95%']*100:.2f}%
-""")
-            st.markdown("#### Drawdown Risk")
-            st.markdown(f"""
-- **Median Max Drawdown**: {result['stats']['max_drawdown']['median']*100:.2f}%
-- **Mean Max Drawdown**: {result['stats']['max_drawdown']['mean']*100:.2f}%
-- **Maximum Drawdown**: {result['stats']['max_drawdown']['max']*100:.2f}%
-""")
-            st.markdown(f"**Probability of Major Loss (>99%)**: "
-                        f"{result['stats']['ruin_probability']*100:.2f}%")
+        _stats_data = {
+            'Metric': [
+                'Median Final Value', 'Mean Final Value', 'Std Deviation',
+                'Minimum', 'Maximum',
+                'P5 Value', 'P25 Value', 'P75 Value', 'P95 Value',
+                'Median CAGR', 'Mean CAGR', 'P5 CAGR', 'P95 CAGR',
+                'Median Max Drawdown', 'Mean Max Drawdown', 'Worst Drawdown',
+                '🔴 Ruin Probability (>99% loss)',
+            ],
+            'Value': [
+                f"${result['stats']['median']:,.2f}",
+                f"${result['stats']['mean']:,.2f}",
+                f"${result['stats']['std']:,.2f}",
+                f"${result['stats']['min']:,.2f}",
+                f"${result['stats']['max']:,.2f}",
+                f"${result['stats']['percentiles']['5%']:,.2f}",
+                f"${result['stats']['percentiles']['25%']:,.2f}",
+                f"${result['stats']['percentiles']['75%']:,.2f}",
+                f"${result['stats']['percentiles']['95%']:,.2f}",
+                f"{result['stats']['cagr']['median']*100:.2f}%",
+                f"{result['stats']['cagr']['mean']*100:.2f}%",
+                f"{result['stats']['cagr']['percentiles']['5%']*100:.2f}%",
+                f"{result['stats']['cagr']['percentiles']['95%']*100:.2f}%",
+                f"{result['stats']['max_drawdown']['median']*100:.2f}%",
+                f"{result['stats']['max_drawdown']['mean']*100:.2f}%",
+                f"{result['stats']['max_drawdown']['max']*100:.2f}%",
+                f"{result['stats']['ruin_probability']*100:.2f}%",
+            ],
+        }
+        _sdf = pd.DataFrame(_stats_data)
+        st.dataframe(_sdf, use_container_width=True, hide_index=True,
+                     column_config={
+                         "Metric": st.column_config.TextColumn("Metric", width="medium"),
+                         "Value":  st.column_config.TextColumn("Value",  width="small"),
+                     })
 
         st.markdown('<div class="sub-header">Sharpe Ratio Comparison</div>', unsafe_allow_html=True)
-        sh1, sh2, sh3, sh4 = st.columns(4)
+        import plotly.graph_objects as _go_sh
         hist_sharpe = asset_data['stats']['sharpe_ratio']
         sim_med_sh  = result['stats']['sharpe_ratio']['median']
         sim_mn_sh   = result['stats']['sharpe_ratio']['mean']
         sh_p5       = result['stats']['sharpe_ratio']['percentiles']['5%']
         sh_p95      = result['stats']['sharpe_ratio']['percentiles']['95%']
+        sh1, sh2, sh3, sh4 = st.columns(4)
         sh1.metric("Historical Sharpe",   f"{hist_sharpe:.2f}")
-        sh2.metric("Sim Median Sharpe",   f"{sim_med_sh:.2f}", f"{sim_med_sh-hist_sharpe:.2f}")
-        sh3.metric("Sim Mean Sharpe",     f"{sim_mn_sh:.2f}",  f"{sim_mn_sh-hist_sharpe:.2f}")
-        sh4.metric("Sim Sharpe (95% CI)", f"{sh_p5:.2f} – {sh_p95:.2f}")
-
-        fig2, ax2 = plt.subplots(figsize=(10, 5))
-        ax2.set_facecolor('#f8f9fa'); fig2.patch.set_facecolor('#ffffff')
-        bars = ax2.bar(['Historical','Sim Median','Sim Mean'],
-                       [hist_sharpe, sim_med_sh, sim_mn_sh],
-                       color=['#1E88E5','#26A69A','#AB47BC'], width=0.5)
-        for b in bars:
-            h = b.get_height()
-            ax2.text(b.get_x()+b.get_width()/2, h+0.05, f'{h:.2f}',
-                     ha='center', va='bottom', color='#333333')
-        ax2.errorbar(1, sim_med_sh,
-                     yerr=[[sim_med_sh-sh_p5],[sh_p95-sim_med_sh]],
-                     fmt='o', color='#0277BD', capsize=10, capthick=2)
-        ax2.set_title('Sharpe Ratio Comparison', fontsize=14)
-        ax2.set_ylabel('Sharpe Ratio')
-        ax2.grid(True, alpha=0.2, linestyle='-')
-        for sp in ax2.spines.values(): sp.set_color('#cccccc'); sp.set_linewidth(0.8)
-        ax2.annotate(f"Note: reflects {leverage:.1f}x leverage",
-                     xy=(0.98,0.02), xycoords='axes fraction', ha='right', va='bottom',
-                     fontsize=10, style='italic')
-        st.pyplot(fig2)
+        sh2.metric("Sim Median Sharpe",   f"{sim_med_sh:.2f}", f"{sim_med_sh-hist_sharpe:+.2f}")
+        sh3.metric("Sim Mean Sharpe",     f"{sim_mn_sh:.2f}",  f"{sim_mn_sh-hist_sharpe:+.2f}")
+        sh4.metric("Sim Sharpe 90% CI",   f"{sh_p5:.2f} – {sh_p95:.2f}")
+        _sh_fig = _go_sh.Figure()
+        _sh_fig.add_trace(_go_sh.Bar(
+            x=['Historical', 'Sim Median', 'Sim Mean'],
+            y=[hist_sharpe, sim_med_sh, sim_mn_sh],
+            marker_color=['#1E88E5', '#26A69A', '#7E57C2'],
+            text=[f"{v:.2f}" for v in [hist_sharpe, sim_med_sh, sim_mn_sh]],
+            textposition='outside',
+            error_y=dict(type='data', symmetric=False,
+                         array=[0, sh_p95-sim_med_sh, 0],
+                         arrayminus=[0, sim_med_sh-sh_p5, 0],
+                         color='#FFA726', thickness=2, width=8),
+            name='Sharpe Ratio',
+        ))
+        _sh_fig.add_hline(y=0, line_color='#888', line_dash='dot')
+        _sh_fig.update_layout(
+            title=f'Sharpe Ratio Comparison  (at {leverage:.1f}× leverage)',
+            yaxis_title='Sharpe Ratio', template='plotly_dark', height=380,
+            margin=dict(l=40, r=40, t=60, b=40), showlegend=False
+        )
+        st.plotly_chart(_sh_fig, use_container_width=True)
 
         if 'model_parameters' in result:
             st.markdown('<div class="sub-header">Model Parameters</div>', unsafe_allow_html=True)
@@ -1086,6 +1295,13 @@ with tab3:
         risk_free_rate = st.session_state.get("_rf_rate", 0.02)
 
         st.markdown('<div class="sub-header">Kelly Criterion Analysis</div>', unsafe_allow_html=True)
+        _ctx3 = (
+            f'<div style="background:rgba(126,87,194,0.10);border:1px solid rgba(126,87,194,0.25);'
+            f'border-radius:8px;padding:8px 16px;margin-bottom:12px;font-size:0.88rem;color:inherit;">'
+            f'<b>📊 {asset_data["name"]}</b>&nbsp;·&nbsp;Kelly analysis at {leverage:.2f}× leverage'
+            '</div>'
+        )
+        st.markdown(_ctx3, unsafe_allow_html=True)
         if kelly_result is None:
             kelly_result = calculate_kelly(_returns=asset_data['returns']['daily'],
                                            risk_free_rate=risk_free_rate,
@@ -1102,6 +1318,22 @@ with tab3:
             kelly_result['leverage_curve'][1],
             kelly_result['leverage_curve'][2]
         )
+        # Zone shading: green (0→Full Kelly), amber (Full→2×), red (2×→max)
+        _fk = kelly_result['full_kelly']
+        _max_lev = max(kelly_result['leverage_curve'][0]) if len(kelly_result['leverage_curve'][0]) else _fk * 3
+        kelly_fig.add_vrect(x0=0, x1=_fk,
+            fillcolor='rgba(38,166,154,0.10)', layer='below', line_width=0,
+            annotation_text='✅ Optimal Zone', annotation_position='top left',
+            annotation_font_color='#26A69A')
+        kelly_fig.add_vrect(x0=_fk, x1=min(_fk*2, _max_lev),
+            fillcolor='rgba(255,167,38,0.10)', layer='below', line_width=0,
+            annotation_text='⚠️ Caution', annotation_position='top left',
+            annotation_font_color='#FFA726')
+        if _fk * 2 < _max_lev:
+            kelly_fig.add_vrect(x0=_fk*2, x1=_max_lev,
+                fillcolor='rgba(239,83,80,0.10)', layer='below', line_width=0,
+                annotation_text='☠️ Ruin Territory', annotation_position='top left',
+                annotation_font_color='#EF5350')
         st.plotly_chart(kelly_fig, use_container_width=True)
 
         st.markdown('<div class="sub-header">Understanding the Kelly Criterion</div>', unsafe_allow_html=True)
