@@ -496,6 +496,12 @@ def portfolio_optimizer_tab() -> None:
         all_combos = list(itertools.combinations(valid_tickers, int(combo_size)))
         results: List[Dict] = []
 
+        # Debug counters — shown after search so we know where failures come from
+        n_none = 0
+        n_corr_fail = 0
+        n_div_fail = 0
+        first_sample: Dict | None = None   # keep one raw result for debugging
+
         progress_bar = st.progress(0)
         status_text  = st.empty()
 
@@ -507,20 +513,47 @@ def portfolio_optimizer_tab() -> None:
 
             res = evaluate_portfolio_combination(list(combo), returns_df, rf_rate)
             if res is None:
+                n_none += 1
                 continue
+            if first_sample is None:
+                first_sample = res        # capture first non-None result for debug
+
             if res["avg_correlation"] > max_corr_filter:
+                n_corr_fail += 1
                 continue
             if res["diversification_bonus"] < min_div_bonus:
+                n_div_fail += 1
                 continue
             results.append(res)
 
         progress_bar.empty()
         status_text.empty()
 
+        # Always show diagnostic breakdown
+        with st.expander("🔬 Search Diagnostics (click to expand)", expanded=(len(results) == 0)):
+            st.markdown(f"""
+| Stage | Count |
+|---|---|
+| Total combos tested | `{n_combos:,}` |
+| Returned `None` (bad data) | `{n_none:,}` |
+| Filtered out — avg correlation > {max_corr_filter} | `{n_corr_fail:,}` |
+| Filtered out — div bonus < {min_div_bonus} | `{n_div_fail:,}` |
+| **Passed all filters** | **`{len(results):,}`** |
+""")
+            if first_sample:
+                st.markdown("**First non-None result (before filters):**")
+                st.json({k: v for k, v in first_sample.items()
+                         if k not in ("kelly_weights", "normalized_weights", "individual_kellys")})
+            else:
+                st.warning("All combinations returned None — check data quality below:")
+                st.write(f"returns_df shape: {returns_df.shape}")
+                st.write(f"returns_df NaN count: {returns_df.isna().sum().to_dict()}")
+                st.write(f"returns_df first row: {returns_df.iloc[0].to_dict()}")
+
         if not results:
             st.warning(
                 "⚠️ No portfolios met your criteria. "
-                "Try relaxing the correlation or diversification bonus filters."
+                "See the Search Diagnostics expander above to understand why."
             )
             st.session_state.pop("po_results", None)
             return
